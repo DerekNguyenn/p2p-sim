@@ -1,3 +1,5 @@
+package com.example.p2pSim;
+
 public class Seeder extends PeerNode {
     public Seeder(int id, double x, double y, int totalChunks) {
         super(id, x, y, totalChunks);
@@ -8,6 +10,6 @@ public class Seeder extends PeerNode {
     }
 
     public String getNodeType() {
-        return "Seeder";
+        return "com.example.p2pSim.Seeder";
     }
 }

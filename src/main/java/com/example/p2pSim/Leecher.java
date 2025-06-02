@@ -1,10 +1,12 @@
+package com.example.p2pSim;
+
 public class Leecher extends PeerNode {
     public Leecher(int id, double x, double y, int totalChunks) {
         super(id, x, y, totalChunks);
     }
 
     public String getNodeType() {
-        return "Leecher";
+        return "com.example.p2pSim.Leecher";
     }
 
     public void downloadFrom(PeerNode peer) {

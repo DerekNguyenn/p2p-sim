@@ -1,3 +1,5 @@
+package com.example.p2pSim;
+
 public class Supernode extends PeerNode {
     public Supernode(int id, double x, double y, int totalChunks) {
         super(id, x, y, totalChunks);
@@ -6,7 +8,7 @@ public class Supernode extends PeerNode {
     }
 
     public String getNodeType() {
-        return "Supernode";
+        return "com.example.p2pSim.Supernode";
     }
 
     public boolean canAcceptMoreConnections() {
