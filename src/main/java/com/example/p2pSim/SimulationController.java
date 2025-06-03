@@ -35,6 +35,8 @@ public class SimulationController {
                 peer = new Leecher(i, x, y, totalChunks);
             }
 
+            System.out.printf("Created Peer %d: %s\n", peer.getId(), peer.getNodeType());
+
             allPeers.add(peer);
         }
 
