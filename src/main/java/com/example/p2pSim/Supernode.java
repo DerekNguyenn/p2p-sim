@@ -8,7 +8,7 @@ public class Supernode extends PeerNode {
     }
 
     public String getNodeType() {
-        return "com.example.p2pSim.Supernode";
+        return "Supernode";
     }
 
     public boolean canAcceptMoreConnections() {

@@ -6,7 +6,7 @@ public class Leecher extends PeerNode {
     }
 
     public String getNodeType() {
-        return "com.example.p2pSim.Leecher";
+        return "Leecher";
     }
 
     public void downloadFrom(PeerNode peer) {

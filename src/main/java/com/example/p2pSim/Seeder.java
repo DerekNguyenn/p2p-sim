@@ -10,6 +10,6 @@ public class Seeder extends PeerNode {
     }
 
     public String getNodeType() {
-        return "com.example.p2pSim.Seeder";
+        return "Seeder";
     }
 }
