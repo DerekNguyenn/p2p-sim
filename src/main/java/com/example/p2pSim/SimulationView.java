@@ -2,12 +2,15 @@ package com.example.p2pSim;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.layout.StackPane;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +20,8 @@ public class SimulationView extends Pane {
     private SimulationController controller;
     private Timeline timeline;
     private Map<Integer, Circle> nodeCircles;
+//    private ProgressBar progressBar;
+    private int totalChunks;
 
     public SimulationView() {
         this.setStyle("-fx-background-color: #000000;");
@@ -27,13 +32,13 @@ public class SimulationView extends Pane {
         if (timeline != null) timeline.stop();
 
         this.controller = new SimulationController(initialPeers, totalChunks);
+        this.totalChunks = totalChunks;
         controller.startSimulation();
 
         timeline = new Timeline(new KeyFrame(Duration.millis(500), e -> {
             controller.tick();
             drawNetwork();
         }));
-
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
     }
@@ -76,6 +81,11 @@ public class SimulationView extends Pane {
             label.setStyle("-fx-font-size: 10;");
             this.getChildren().add(label);
         }
+    }
+
+    public double getDownloadProgress() {
+        PeerNode target = controller.getDownloadTarget();
+        return (double) target.getOwnedChunks().size() / totalChunks;
     }
 
     private Color getColorForType(PeerNode peer) {
