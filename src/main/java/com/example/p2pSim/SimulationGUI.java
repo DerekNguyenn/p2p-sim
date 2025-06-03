@@ -5,6 +5,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class SimulationGUI extends Application {
@@ -16,14 +17,20 @@ public class SimulationGUI extends Application {
         inputPanel.setStyle("-fx-background-color: #333333;");
 
         Label peersLabel = new Label("Initial Peers:");
+        peersLabel.setTextFill(Color.WHITE);
         TextField peersField = new TextField("10");
 
         Label chunksLabel = new Label("Total Chunks:");
+        chunksLabel.setTextFill(Color.WHITE);
         TextField chunksField = new TextField("10");
 
         Button startButton = new Button("Start Simulation");
 
-        inputPanel.getChildren().addAll(peersLabel, peersField, chunksLabel, chunksField, startButton);
+        inputPanel.getChildren().addAll(
+                peersLabel, peersField,
+                chunksLabel, chunksField,
+                startButton
+        );
 
         // Simulation canvas
         SimulationView simulationView = new SimulationView();
