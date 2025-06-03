@@ -2,15 +2,12 @@ package com.example.p2pSim;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.layout.StackPane;
 
 import java.util.HashMap;
 import java.util.List;
@@ -77,7 +74,7 @@ public class SimulationView extends Pane {
             // Chunk count label
             Text label = new Text(peer.getX() - 10, peer.getY() + 4,
                     String.valueOf(peer.getOwnedChunks().size()));
-            label.setFill(Color.WHITE);
+            label.setFill(Color.BLACK);
             label.setStyle("-fx-font-size: 10;");
             this.getChildren().add(label);
         }
