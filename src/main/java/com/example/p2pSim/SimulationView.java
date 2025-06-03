@@ -14,20 +14,19 @@ import java.util.List;
 import java.util.Map;
 
 public class SimulationView extends Pane {
-    private static final int INITIAL_PEERS = 10;
-    private static final int TOTAL_CHUNKS = 10;
-
     private SimulationController controller;
     private Timeline timeline;
     private Map<Integer, Circle> nodeCircles;
 
     public SimulationView() {
-        this.controller = new SimulationController(INITIAL_PEERS, TOTAL_CHUNKS);
+        this.setStyle("-fx-background-color: #000000;");
         this.nodeCircles = new HashMap<>();
-        this.setStyle("-fx-background-color: #1e1e1e;");
     }
 
-    public void start() {
+    public void start(int initialPeers, int totalChunks) {
+        if (timeline != null) timeline.stop();
+
+        this.controller = new SimulationController(initialPeers, totalChunks);
         controller.startSimulation();
 
         timeline = new Timeline(new KeyFrame(Duration.millis(500), e -> {
@@ -45,13 +44,13 @@ public class SimulationView extends Pane {
 
         List<PeerNode> peers = controller.getPeers();
 
-        // Draw connections (lines)
+        // Draw connections first (lines)
         for (PeerNode node : peers) {
             for (NetworkNode conn : node.getConnections()) {
-                if (conn.getId() > node.getId()) { // draw once per pair
+                if (conn.getId() > node.getId()) {
                     Line edge = new Line(node.getX(), node.getY(), conn.getX(), conn.getY());
-                    edge.setStroke(Color.GRAY);
-                    edge.setStrokeWidth(1.5);
+                    edge.setStroke(Color.web("#777777"));
+                    edge.setStrokeWidth(1.0);
                     this.getChildren().add(edge);
                 }
             }
@@ -60,15 +59,17 @@ public class SimulationView extends Pane {
         // Draw nodes
         for (PeerNode peer : peers) {
             Color fillColor = getColorForType(peer);
-            Circle circle = new Circle(peer.getX(), peer.getY(), getRadiusForType(peer));
+            double radius = getRadiusForType(peer);
+
+            Circle circle = new Circle(peer.getX(), peer.getY(), radius);
             circle.setFill(fillColor);
             circle.setStroke(Color.WHITE);
             circle.setStrokeWidth(1.0);
 
-            nodeCircles.put(peer.getId(), circle);
             this.getChildren().add(circle);
+            nodeCircles.put(peer.getId(), circle);
 
-            // Add chunk progress text
+            // Chunk count label
             Text label = new Text(peer.getX() - 10, peer.getY() + 4,
                     String.valueOf(peer.getOwnedChunks().size()));
             label.setFill(Color.WHITE);
@@ -79,9 +80,9 @@ public class SimulationView extends Pane {
 
     private Color getColorForType(PeerNode peer) {
         return switch (peer.getNodeType()) {
-            case "Seeder" -> Color.LIMEGREEN;
-            case "Leecher" -> Color.CORNFLOWERBLUE;
-            case "Supernode" -> Color.ORANGE;
+            case "Seeder" -> Color.LIME;
+            case "Leecher" -> Color.ROYALBLUE;
+            case "Supernode" -> Color.GOLD;
             default -> Color.GRAY;
         };
     }
