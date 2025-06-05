@@ -7,10 +7,17 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.animation.Timeline;
+import javafx.animation.KeyFrame;
+import javafx.util.Duration;
 
 public class SimulationGUI extends Application {
 
     public void start(Stage primaryStage) {
+        ProgressBar progressBar = new ProgressBar(0);
+        progressBar.setPrefWidth(300);
+        progressBar.setStyle("-fx-accent: lime;");
+
         // Input panel
         VBox inputPanel = new VBox(10);
         inputPanel.setPadding(new Insets(10));
@@ -33,12 +40,29 @@ public class SimulationGUI extends Application {
         );
 
         // Simulation canvas
+//        SimulationView simulationView = new SimulationView();
+//
+//        // Split layout
+//        BorderPane layout = new BorderPane();
+//        layout.setLeft(inputPanel);
+//        layout.setCenter(simulationView);
+//        StackPane simulationPane = new StackPane(simulationView);
+//        layout.setCenter(simulationPane);
+
         SimulationView simulationView = new SimulationView();
 
-        // Split layout
+        StackPane simulationPane = new StackPane(simulationView);
+        simulationPane.setStyle("-fx-background-color: #000000;");
+
+        VBox bottomBox = new VBox(progressBar);
+        bottomBox.setPadding(new Insets(10));
+        bottomBox.setStyle("-fx-background-color: #222222;");
+        bottomBox.setAlignment(javafx.geometry.Pos.CENTER);
+
         BorderPane layout = new BorderPane();
         layout.setLeft(inputPanel);
-        layout.setCenter(simulationView);
+        layout.setCenter(simulationPane);
+        layout.setBottom(bottomBox);
 
         Scene scene = new Scene(layout, 1000, 600);
         primaryStage.setScene(scene);
@@ -50,6 +74,14 @@ public class SimulationGUI extends Application {
                 int peers = Integer.parseInt(peersField.getText());
                 int chunks = Integer.parseInt(chunksField.getText());
                 simulationView.start(peers, chunks);
+
+                // Use a Timeline to keep progress bar updated
+                Timeline progressUpdater = new Timeline(new KeyFrame(Duration.millis(500), evt -> {
+                    progressBar.setProgress(simulationView.getDownloadProgress());
+                }));
+                progressUpdater.setCycleCount(Timeline.INDEFINITE);
+                progressUpdater.play();
+
             } catch (NumberFormatException ex) {
                 Alert alert = new Alert(Alert.AlertType.ERROR, "Please enter valid integers.");
                 alert.showAndWait();
