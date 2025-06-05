@@ -39,16 +39,6 @@ public class SimulationGUI extends Application {
                 startButton
         );
 
-        // Simulation canvas
-//        SimulationView simulationView = new SimulationView();
-//
-//        // Split layout
-//        BorderPane layout = new BorderPane();
-//        layout.setLeft(inputPanel);
-//        layout.setCenter(simulationView);
-//        StackPane simulationPane = new StackPane(simulationView);
-//        layout.setCenter(simulationPane);
-
         SimulationView simulationView = new SimulationView();
 
         StackPane simulationPane = new StackPane(simulationView);
