@@ -1,4 +1,4 @@
-package com.example.p2pSim;
+package org.derekn.p2pSim;
 
 public class Supernode extends PeerNode {
     public Supernode(int id, double x, double y, int totalChunks) {
