@@ -106,12 +106,22 @@ public class SimulationController {
         // Randomly remove a node
         if (Math.random() < 0.05 && allPeers.size() > 3) {
             PeerNode toRemove = allPeers.get(new Random().nextInt(allPeers.size()));
-            if (!(toRemove instanceof Seeder)) {
+
+            if (toRemove.canDisconnect()) {
                 allPeers.remove(toRemove);
                 for (PeerNode peer : allPeers) {
                     peer.disconnectFrom(toRemove);
                 }
+                // Debugging print
+                System.out.println("Peer " + toRemove.getId() + " disconnected.");
             }
+
+//            if (!(toRemove instanceof Seeder)) {
+//                allPeers.remove(toRemove);
+//                for (PeerNode peer : allPeers) {
+//                    peer.disconnectFrom(toRemove);
+//                }
+//            }
         }
 
         // Randomly add a new peer

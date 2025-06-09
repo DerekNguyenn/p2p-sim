@@ -8,6 +8,7 @@ public abstract class NetworkNode {
     protected double x;
     protected double y;
     protected List<NetworkNode> connections;
+    protected boolean canDisconnect = true;
 
     public NetworkNode(int id, double x, double y) {
         this.id = id;
@@ -28,6 +29,10 @@ public abstract class NetworkNode {
             otherNode.connections.add(this);
         }
     }
+
+    public boolean canDisconnect() { return canDisconnect; }
+
+    public void setCanDisconnect(boolean canDisconnect) { this.canDisconnect = canDisconnect; }
 
     public void disconnectFrom(NetworkNode otherNode) {
         connections.remove(otherNode);
