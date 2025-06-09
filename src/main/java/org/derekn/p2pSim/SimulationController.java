@@ -41,7 +41,7 @@ public class SimulationController {
         }
 
         // Assign download target for tracking (e.g., last peer)
-        downloadTarget = allPeers.get(allPeers.size() - 1);
+        downloadTarget = allPeers.getLast();
 
         // Randomly connect peers
         connectPeersRandomly();
