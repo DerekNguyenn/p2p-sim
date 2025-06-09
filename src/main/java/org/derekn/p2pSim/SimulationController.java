@@ -66,6 +66,22 @@ public class SimulationController {
         simulateChurn();
         simulateChunkTransfers();
 
+        // Debug logging prints
+        System.out.println(tickCount);
+        System.out.println("Target missing: " + getDownloadTarget().getMissingChunks());
+
+        for (NetworkNode conn : getDownloadTarget().getConnections()) {
+            if (conn instanceof PeerNode p) {
+                System.out.print("Connected to Peer " + p.getId() + " with chunks: ");
+                if (p.getOwnedChunks().isEmpty()) {
+                    System.out.print("None");
+                } else {
+                    System.out.print(p.getOwnedChunks());
+                }
+                System.out.println();
+            }
+        }
+
         // Stop condition
         if (downloadTarget.hasCompleteFile()) {
             simulationRunning = false;
