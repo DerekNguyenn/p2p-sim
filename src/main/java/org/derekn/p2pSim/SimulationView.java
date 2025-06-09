@@ -92,7 +92,7 @@ public class SimulationView extends Pane {
 
         if (downloadComplete) {
             Text summary = new Text(20, 40, summaryReport);
-            summary.setFill(Color.BLUE);
+            summary.setFill(Color.WHITE);
             summary.setStyle("-fx-font-size: 14; -fx-font-family: monospace;");
             this.getChildren().add(summary);
         }
