@@ -1,4 +1,4 @@
-package com.example.p2pSim;
+package org.derekn.p2pSim;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -38,16 +38,6 @@ public class SimulationGUI extends Application {
                 chunksLabel, chunksField,
                 startButton
         );
-
-        // Simulation canvas
-//        SimulationView simulationView = new SimulationView();
-//
-//        // Split layout
-//        BorderPane layout = new BorderPane();
-//        layout.setLeft(inputPanel);
-//        layout.setCenter(simulationView);
-//        StackPane simulationPane = new StackPane(simulationView);
-//        layout.setCenter(simulationPane);
 
         SimulationView simulationView = new SimulationView();
 

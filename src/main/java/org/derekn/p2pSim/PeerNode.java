@@ -1,4 +1,4 @@
-package com.example.p2pSim;
+package org.derekn.p2pSim;
 
 import java.util.HashSet;
 import java.util.Set;
