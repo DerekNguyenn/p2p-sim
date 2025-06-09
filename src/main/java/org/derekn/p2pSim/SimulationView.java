@@ -142,7 +142,6 @@ public class SimulationView extends Pane {
             ✅ Download Complete
             Time Elapsed: %d seconds
             Total Chunks Downloaded: %d
-            Download Target: Peer %d
             Active Peers: %d
             Final Seeders: %d
             Supernodes: %d
@@ -150,7 +149,6 @@ public class SimulationView extends Pane {
             """,
                 timeElapsed,
                 target.getOwnedChunks().size(),
-                target.getId(),
                 controller.getPeers().size(),
                 seederCount,
                 supernodeCount,
