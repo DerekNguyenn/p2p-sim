@@ -18,6 +18,9 @@ public class SimulationView extends Pane {
     private Timeline timeline;
     private Map<Integer, Circle> nodeCircles;
     private int totalChunks;
+    private boolean downloadComplete;
+    private String summaryReport;
+    private long startTimeMs;
 
     public SimulationView() {
         this.setStyle("-fx-background-color: #000000;");
@@ -34,6 +37,12 @@ public class SimulationView extends Pane {
         timeline = new Timeline(new KeyFrame(Duration.millis(500), e -> {
             controller.tick();
             drawNetwork();
+
+            if (!downloadComplete && controller.getDownloadTarget().hasCompleteFile()) {
+                downloadComplete = true;
+                buildReportSummary();
+            }
+
         }));
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
@@ -77,6 +86,13 @@ public class SimulationView extends Pane {
             label.setStyle("-fx-font-size: 10;");
             this.getChildren().add(label);
         }
+
+        if (downloadComplete) {
+            Text summary = new Text(20, 40, summaryReport);
+            summary.setFill(Color.BLUE);
+            summary.setStyle("-fx-font-size: 14; -fx-font-family: monospace;");
+            this.getChildren().add(summary);
+        }
     }
 
     public double getDownloadProgress() {
@@ -100,6 +116,41 @@ public class SimulationView extends Pane {
             case "Supernode" -> 14;
             default -> 6;
         };
+    }
+
+    private void buildReportSummary() {
+        long timeElapsed = (System.currentTimeMillis() - startTimeMs) / 1000;
+        PeerNode target = controller.getDownloadTarget();
+
+        int totalConnections = controller
+                .getPeers()
+                .stream()
+                .mapToInt(p -> p.getConnections().size()).sum() / 2;
+
+        long seederCount = controller.getPeers().stream()
+                .filter(p -> p instanceof Seeder).count();
+
+        long supernodeCount = controller.getPeers().stream()
+                .filter(p -> p instanceof Supernode).count();
+
+        summaryReport = String.format("""
+            ✅ Download Complete
+            Time Elapsed: %d seconds
+            Total Chunks Downloaded: %d
+            Download Target: Peer %d
+            Active Peers: %d
+            Final Seeders: %d
+            Supernodes: %d
+            Total Connections: %d
+            """,
+                timeElapsed,
+                target.getOwnedChunks().size(),
+                target.getId(),
+                controller.getPeers().size(),
+                seederCount,
+                supernodeCount,
+                totalConnections
+        );
     }
 }
 
