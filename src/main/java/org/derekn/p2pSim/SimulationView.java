@@ -28,6 +28,9 @@ public class SimulationView extends Pane {
     }
 
     public void start(int initialPeers, int totalChunks) {
+        this.startTimeMs = System.currentTimeMillis();
+        this.downloadComplete = false;
+
         if (timeline != null) timeline.stop();
 
         this.controller = new SimulationController(initialPeers, totalChunks);
