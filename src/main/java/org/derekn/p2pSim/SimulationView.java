@@ -17,7 +17,6 @@ public class SimulationView extends Pane {
     private SimulationController controller;
     private Timeline timeline;
     private Map<Integer, Circle> nodeCircles;
-//    private ProgressBar progressBar;
     private int totalChunks;
 
     public SimulationView() {
