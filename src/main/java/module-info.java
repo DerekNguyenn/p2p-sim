@@ -1,4 +1,4 @@
-module com.example.p2pSim {
+module org.derekn.p2pSim {
     requires javafx.controls;
     requires javafx.fxml;
 
