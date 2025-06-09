@@ -126,6 +126,8 @@ public class SimulationView extends Pane {
     private void buildReportSummary() {
         long timeElapsed = (System.currentTimeMillis() - startTimeMs) / 1000;
         PeerNode target = controller.getDownloadTarget();
+        int downloaded = target.getOwnedChunks().size();
+        int missing = totalChunks - downloaded;
 
         int totalConnections = controller
                 .getPeers()
@@ -138,21 +140,33 @@ public class SimulationView extends Pane {
         long supernodeCount = controller.getPeers().stream()
                 .filter(p -> p instanceof Supernode).count();
 
+        String status = downloadComplete
+                ? "✅ Download Complete"
+                : "❌ Download Failed";
+
+        String reason = downloadComplete
+                ? ""
+                : "\nReason: Target client is not connected to peers with required chunks.";
+
         summaryReport = String.format("""
-            ✅ Download Complete
+            %s
             Time Elapsed: %d seconds
-            Total Chunks Downloaded: %d
+            Chunks Downloaded: %d/%d
+            Chunks Missing: %d
             Active Peers: %d
             Final Seeders: %d
             Supernodes: %d
-            Total Connections: %d
+            Total Connections: %d%s
             """,
+                status,
                 timeElapsed,
-                target.getOwnedChunks().size(),
+                downloaded, this.totalChunks,
+                missing,
                 controller.getPeers().size(),
                 seederCount,
                 supernodeCount,
-                totalConnections
+                totalConnections,
+                reason
         );
     }
 }
