@@ -79,6 +79,10 @@ public class SimulationView extends Pane {
             circle.setStroke(Color.WHITE);
             circle.setStrokeWidth(1.0);
 
+            if (peer == controller.getDownloadTarget()) {
+                circle.setFill(Color.HOTPINK);
+            }
+
             this.getChildren().add(circle);
             nodeCircles.put(peer.getId(), circle);
 
