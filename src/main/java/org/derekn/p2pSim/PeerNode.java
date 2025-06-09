@@ -33,6 +33,16 @@ public abstract class PeerNode extends NetworkNode {
         return ownedChunks;
     }
 
+    public Set<Integer> getMissingChunks() {
+        Set<Integer> missing = new HashSet<>();
+        for (int i = 0; i < totalChunks; i++) {
+            if (!ownedChunks.contains(i)) {
+                missing.add(i);
+            }
+        }
+        return missing;
+    }
+
     public double getUploadSpeed() {
         return uploadSpeed;
     }
