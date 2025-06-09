@@ -27,7 +27,11 @@ public class SimulationController {
 
             PeerNode peer;
             if (i == 0) {
-                // First node is a seeder
+                // First node is always Client (download target)
+                peer = new Client(i, x, y, totalChunks);
+                this.downloadTarget = peer; // assign as target
+            } else if (i == 1) {
+                // Second node is always a Seeder
                 peer = new Seeder(i, x, y, totalChunks);
             } else if (Math.random() < 0.2) {
                 peer = new Supernode(i, x, y, totalChunks);
@@ -39,9 +43,6 @@ public class SimulationController {
 
             allPeers.add(peer);
         }
-
-        // Assign download target for tracking (e.g., last peer)
-        downloadTarget = allPeers.getLast();
 
         // Randomly connect peers
         connectPeersRandomly();

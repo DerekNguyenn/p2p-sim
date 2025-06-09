@@ -79,10 +79,6 @@ public class SimulationView extends Pane {
             circle.setStroke(Color.WHITE);
             circle.setStrokeWidth(1.0);
 
-            if (peer == controller.getDownloadTarget()) {
-                circle.setFill(Color.HOTPINK);
-            }
-
             this.getChildren().add(circle);
             nodeCircles.put(peer.getId(), circle);
 
@@ -109,6 +105,7 @@ public class SimulationView extends Pane {
 
     private Color getColorForType(PeerNode peer) {
         return switch (peer.getNodeType()) {
+            case "Client" -> Color.PINK;
             case "Seeder" -> Color.LIME;
             case "Leecher" -> Color.ROYALBLUE;
             case "Supernode" -> Color.GOLD;
@@ -118,6 +115,7 @@ public class SimulationView extends Pane {
 
     private double getRadiusForType(PeerNode peer) {
         return switch (peer.getNodeType()) {
+            case "Client" -> 12;
             case "Seeder" -> 10;
             case "Leecher" -> 8;
             case "Supernode" -> 14;
