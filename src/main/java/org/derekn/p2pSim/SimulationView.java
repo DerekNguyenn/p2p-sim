@@ -19,13 +19,12 @@ public class SimulationView extends Pane {
     private Map<Integer, Circle> nodeCircles;
     private int totalChunks;
     private boolean downloadComplete = false;
-    private String summaryReport;
-    private long startTimeMs;
-
-    private int ticksSinceLastChunk = 0;
-    private int stallThreshold = 20;
-    private int lastChunkCount = 0;
     private boolean downloadFailed = false;
+    private long startTimeMs;
+    private int lastChunkCount = 0;
+    private int ticksSinceLastChunk = 0;
+    private final int stallThreshold = 20;
+    private String summaryReport;
 
     public SimulationView() {
         this.setStyle("-fx-background-color: #000000;");
