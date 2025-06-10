@@ -31,7 +31,7 @@ public class SimulationView extends Pane {
         this.nodeCircles = new HashMap<>();
     }
 
-    public void start(int initialPeers, int totalChunks) {
+    public void start(int initialPeers, int totalChunks, int chunkSizeBytes, long fileSizeBytes) {
         this.startTimeMs = System.currentTimeMillis();
 
         if (timeline != null) timeline.stop();

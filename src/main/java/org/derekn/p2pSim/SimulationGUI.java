@@ -27,15 +27,20 @@ public class SimulationGUI extends Application {
         peersLabel.setTextFill(Color.WHITE);
         TextField peersField = new TextField("10");
 
-        Label chunksLabel = new Label("Total Chunks:");
-        chunksLabel.setTextFill(Color.WHITE);
-        TextField chunksField = new TextField("10");
+        Label fileSizeLabel = new Label("File Size (bytes):");
+        fileSizeLabel.setTextFill(Color.WHITE);
+        TextField fileSizeField = new TextField("10485760"); // 10 MB default
+
+        Label chunkSizeLabel = new Label("Chunk Size (bytes):");
+        chunkSizeLabel.setTextFill(Color.WHITE);
+        TextField chunkSizeField = new TextField("1048576"); // 1 MB default
 
         Button startButton = new Button("Start Simulation");
 
         inputPanel.getChildren().addAll(
                 peersLabel, peersField,
-                chunksLabel, chunksField,
+                fileSizeLabel, fileSizeField,
+                chunkSizeLabel, chunkSizeField,
                 startButton
         );
 
@@ -62,10 +67,16 @@ public class SimulationGUI extends Application {
         startButton.setOnAction(e -> {
             try {
                 int peers = Integer.parseInt(peersField.getText());
-                int chunks = Integer.parseInt(chunksField.getText());
-                simulationView.start(peers, chunks);
+                long fileSize = Long.parseLong(fileSizeField.getText());
+                int chunkSize = Integer.parseInt(chunkSizeField.getText());
 
-                // Use a Timeline to keep progress bar updated
+                if (fileSize <= 0 || chunkSize <= 0) {
+                    throw new NumberFormatException();
+                }
+
+                int totalChunks = (int) Math.ceil((double) fileSize / chunkSize);
+                simulationView.start(peers, totalChunks, chunkSize, fileSize);
+
                 Timeline progressUpdater = new Timeline(new KeyFrame(Duration.millis(500), evt -> {
                     progressBar.setProgress(simulationView.getDownloadProgress());
                 }));
@@ -73,7 +84,7 @@ public class SimulationGUI extends Application {
                 progressUpdater.play();
 
             } catch (NumberFormatException ex) {
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Please enter valid integers.");
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Please enter valid positive numbers.");
                 alert.showAndWait();
             }
         });
@@ -83,5 +94,3 @@ public class SimulationGUI extends Application {
         launch(args);
     }
 }
-
-
