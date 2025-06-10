@@ -18,9 +18,13 @@ public class SimulationView extends Pane {
     private Timeline timeline;
     private Map<Integer, Circle> nodeCircles;
     private int totalChunks;
-    private boolean downloadComplete;
-    private String summaryReport;
+    private boolean downloadComplete = false;
+    private boolean downloadFailed = false;
     private long startTimeMs;
+    private int lastChunkCount = 0;
+    private int ticksSinceLastChunk = 0;
+    private final int stallThreshold = 20;
+    private String summaryReport;
 
     public SimulationView() {
         this.setStyle("-fx-background-color: #000000;");
@@ -29,7 +33,6 @@ public class SimulationView extends Pane {
 
     public void start(int initialPeers, int totalChunks) {
         this.startTimeMs = System.currentTimeMillis();
-        this.downloadComplete = false;
 
         if (timeline != null) timeline.stop();
 
@@ -39,13 +42,35 @@ public class SimulationView extends Pane {
 
         timeline = new Timeline(new KeyFrame(Duration.millis(500), e -> {
             controller.tick();
-            drawNetwork();
 
-            if (!downloadComplete && controller.getDownloadTarget().hasCompleteFile()) {
-                downloadComplete = true;
-                buildReportSummary();
+            PeerNode target = controller.getDownloadTarget();
+            int currentChunkCount = target.getOwnedChunks().size();
+
+            // Check for progress
+            if (currentChunkCount > lastChunkCount) {
+                ticksSinceLastChunk = 0;
+                lastChunkCount = currentChunkCount;
+            } else {
+                ticksSinceLastChunk++;
             }
 
+            // Download complete
+            if (!downloadComplete && target.hasCompleteFile()) {
+                downloadComplete = true;
+                buildReportSummary();
+                timeline.stop();
+                drawNetwork();
+            }
+
+            // Download failure
+            if (!downloadComplete && !downloadFailed && ticksSinceLastChunk >= stallThreshold) {
+                downloadFailed = true;
+                buildReportSummary();
+                timeline.stop();
+                drawNetwork();
+            }
+
+            drawNetwork();
         }));
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
@@ -79,10 +104,6 @@ public class SimulationView extends Pane {
             circle.setStroke(Color.WHITE);
             circle.setStrokeWidth(1.0);
 
-            if (peer == controller.getDownloadTarget()) {
-                circle.setFill(Color.HOTPINK);
-            }
-
             this.getChildren().add(circle);
             nodeCircles.put(peer.getId(), circle);
 
@@ -94,7 +115,7 @@ public class SimulationView extends Pane {
             this.getChildren().add(label);
         }
 
-        if (downloadComplete) {
+        if (downloadComplete || downloadFailed) {
             Text summary = new Text(20, 40, summaryReport);
             summary.setFill(Color.WHITE);
             summary.setStyle("-fx-font-size: 14; -fx-font-family: monospace;");
@@ -109,6 +130,7 @@ public class SimulationView extends Pane {
 
     private Color getColorForType(PeerNode peer) {
         return switch (peer.getNodeType()) {
+            case "Client" -> Color.PINK;
             case "Seeder" -> Color.LIME;
             case "Leecher" -> Color.ROYALBLUE;
             case "Supernode" -> Color.GOLD;
@@ -118,6 +140,7 @@ public class SimulationView extends Pane {
 
     private double getRadiusForType(PeerNode peer) {
         return switch (peer.getNodeType()) {
+            case "Client" -> 12;
             case "Seeder" -> 10;
             case "Leecher" -> 8;
             case "Supernode" -> 14;
@@ -128,6 +151,8 @@ public class SimulationView extends Pane {
     private void buildReportSummary() {
         long timeElapsed = (System.currentTimeMillis() - startTimeMs) / 1000;
         PeerNode target = controller.getDownloadTarget();
+        int downloaded = target.getOwnedChunks().size();
+        int missing = totalChunks - downloaded;
 
         int totalConnections = controller
                 .getPeers()
@@ -140,23 +165,33 @@ public class SimulationView extends Pane {
         long supernodeCount = controller.getPeers().stream()
                 .filter(p -> p instanceof Supernode).count();
 
+        String status = downloadComplete
+                ? "✅ Download Complete"
+                : "❌ Download Failed";
+
+        String reason = downloadComplete
+                ? ""
+                : "\nDownload failed - required chunks unavailable.";
+
         summaryReport = String.format("""
-            ✅ Download Complete
+            %s
             Time Elapsed: %d seconds
-            Total Chunks Downloaded: %d
-            Download Target: Peer %d
+            Chunks Downloaded: %d/%d
+            Chunks Missing: %d
             Active Peers: %d
             Final Seeders: %d
             Supernodes: %d
-            Total Connections: %d
+            Total Connections: %d%s
             """,
+                status,
                 timeElapsed,
-                target.getOwnedChunks().size(),
-                target.getId(),
+                downloaded, this.totalChunks,
+                missing,
                 controller.getPeers().size(),
                 seederCount,
                 supernodeCount,
-                totalConnections
+                totalConnections,
+                reason
         );
     }
 }

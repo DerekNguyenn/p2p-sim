@@ -27,7 +27,11 @@ public class SimulationController {
 
             PeerNode peer;
             if (i == 0) {
-                // First node is a seeder
+                // First node is always Client (download target)
+                peer = new Client(i, x, y, totalChunks);
+                this.downloadTarget = peer; // assign as target
+            } else if (i == 1) {
+                // Second node is always a Seeder
                 peer = new Seeder(i, x, y, totalChunks);
             } else if (Math.random() < 0.2) {
                 peer = new Supernode(i, x, y, totalChunks);
@@ -39,9 +43,6 @@ public class SimulationController {
 
             allPeers.add(peer);
         }
-
-        // Assign download target for tracking (e.g., last peer)
-        downloadTarget = allPeers.getLast();
 
         // Randomly connect peers
         connectPeersRandomly();
@@ -66,6 +67,22 @@ public class SimulationController {
         simulateChurn();
         simulateChunkTransfers();
 
+        // Debug logging prints
+        System.out.println(tickCount);
+        System.out.println("Target missing: " + getDownloadTarget().getMissingChunks());
+
+        for (NetworkNode conn : getDownloadTarget().getConnections()) {
+            if (conn instanceof PeerNode p) {
+                System.out.print("Connected to Peer " + p.getId() + " with chunks: ");
+                if (p.getOwnedChunks().isEmpty()) {
+                    System.out.print("None");
+                } else {
+                    System.out.print(p.getOwnedChunks());
+                }
+                System.out.println();
+            }
+        }
+
         // Stop condition
         if (downloadTarget.hasCompleteFile()) {
             simulationRunning = false;
@@ -89,12 +106,22 @@ public class SimulationController {
         // Randomly remove a node
         if (Math.random() < 0.05 && allPeers.size() > 3) {
             PeerNode toRemove = allPeers.get(new Random().nextInt(allPeers.size()));
-            if (!(toRemove instanceof Seeder)) {
+
+            if (toRemove.canDisconnect()) {
                 allPeers.remove(toRemove);
                 for (PeerNode peer : allPeers) {
                     peer.disconnectFrom(toRemove);
                 }
+                // Debugging print
+                System.out.println("Peer " + toRemove.getId() + " disconnected.");
             }
+
+//            if (!(toRemove instanceof Seeder)) {
+//                allPeers.remove(toRemove);
+//                for (PeerNode peer : allPeers) {
+//                    peer.disconnectFrom(toRemove);
+//                }
+//            }
         }
 
         // Randomly add a new peer
