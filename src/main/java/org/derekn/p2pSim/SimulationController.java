@@ -8,6 +8,8 @@ public class SimulationController {
     private PeerNode downloadTarget; // The peer we are tracking for completion
     private boolean simulationRunning;
     private int tickCount;
+    private int ticksSinceLastProgress = 0;
+    private int lastChunkCount = 0;
 
     // Constructor
     public SimulationController(int initialPeers, int totalChunks) {
@@ -158,6 +160,25 @@ public class SimulationController {
 
     public PeerNode getDownloadTarget() {
         return downloadTarget;
+    }
+
+    public boolean downloadFailed() {
+        PeerNode target = getDownloadTarget();
+        int currentChunkCount = target.getOwnedChunks().size();
+
+        if (currentChunkCount > lastChunkCount) {
+            lastChunkCount = currentChunkCount;
+            ticksSinceLastProgress = 0; // Reset if progress made
+        } else {
+            ticksSinceLastProgress++;
+        }
+
+        int stallThreshold = 20;
+        return ticksSinceLastProgress >= stallThreshold;
+    }
+
+    public int getTickCount() {
+        return tickCount;
     }
 
     // Random coordinate generators for layout

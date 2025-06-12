@@ -37,6 +37,16 @@ public class SimulationGUI extends Application {
 
         HBox fileSizeBox = new HBox(5, fileSizeValue, fileSizeUnit);
 
+        Label speedLabel = new Label("Simulation Speed:");
+        speedLabel.setTextFill(Color.WHITE);
+
+        Slider speedSlider = new Slider(0.1, 5.0, 1.0); // 0.1x to 5x speed
+        speedSlider.setShowTickLabels(true);
+        speedSlider.setShowTickMarks(true);
+        speedSlider.setMajorTickUnit(1);
+        speedSlider.setMinorTickCount(4);
+        speedSlider.setBlockIncrement(0.1);
+
         Label chunkSizeLabel = new Label("Chunk Size:");
         chunkSizeLabel.setTextFill(Color.WHITE);
 
@@ -52,15 +62,25 @@ public class SimulationGUI extends Application {
 
         Button startButton = new Button("Start Simulation");
 
+        SimulationView simulationView = new SimulationView();
+
+        Label tickDurationLabel = new Label("1.0x (Realtime)");
+        tickDurationLabel.setTextFill(Color.WHITE);
+        speedSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            tickDurationLabel.setText(String.format("%.1fx", newVal.doubleValue()));
+            simulationView.setSpeedMultiplier(newVal.doubleValue()); // realtime update
+        });
+
+        HBox speedLabelRow = new HBox(5, speedLabel, tickDurationLabel);
+
         inputPanel.getChildren().addAll(
                 peersLabel, peersField,
                 fileSizeLabel, fileSizeBox,
                 chunkSizeLabel, chunkSizeBox,
                 calculatedChunksLabel,
+                speedLabelRow, speedSlider,
                 startButton
         );
-
-        SimulationView simulationView = new SimulationView();
 
         StackPane simulationPane = new StackPane(simulationView);
         simulationPane.setStyle("-fx-background-color: #000000;");
@@ -136,7 +156,10 @@ public class SimulationGUI extends Application {
                 long fileSize = (long) (fileVal * multiplier);
                 int totalChunks = (int) Math.ceil((double) fileSize / chunkSize);
 
-                simulationView.start(peers, totalChunks, chunkSize, fileSize);
+                double speedMultiplier = speedSlider.getValue();
+
+                simulationView.start(peers, totalChunks, chunkSize, fileSize,
+                        speedMultiplier);
 
                 Timeline progressUpdater = new Timeline(new KeyFrame(Duration.millis(500), evt -> {
                     progressBar.setProgress(simulationView.getDownloadProgress());

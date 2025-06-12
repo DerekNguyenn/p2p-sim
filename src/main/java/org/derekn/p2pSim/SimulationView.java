@@ -1,6 +1,5 @@
 package org.derekn.p2pSim;
 
-import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.PathTransition;
 import javafx.animation.Timeline;
@@ -25,6 +24,7 @@ public class SimulationView extends Pane {
     private int lastChunkCount = 0;
     private int ticksSinceLastChunk = 0;
     private final int stallThreshold = 20;
+    private long tickDurationMs = 500;
     private String summaryReport;
 
     public SimulationView() {
@@ -32,7 +32,8 @@ public class SimulationView extends Pane {
         this.nodeCircles = new HashMap<>();
     }
 
-    public void start(int initialPeers, int totalChunks, int chunkSizeBytes, long fileSizeBytes) {
+    public void start(int initialPeers, int totalChunks, int chunkSizeBytes,
+                      long fileSizeBytes, double speedMultiplier) {
         this.startTimeMs = System.currentTimeMillis();
 
         if (timeline != null) timeline.stop();
@@ -41,7 +42,9 @@ public class SimulationView extends Pane {
         this.totalChunks = totalChunks;
         controller.startSimulation();
 
-        timeline = new Timeline(new KeyFrame(Duration.millis(500), e -> {
+        this.tickDurationMs = (long)(500 / speedMultiplier); // default is 500ms
+
+        timeline = new Timeline(new KeyFrame(Duration.millis(tickDurationMs), e -> {
             controller.tick();
 
             PeerNode target = controller.getDownloadTarget();
@@ -95,53 +98,51 @@ public class SimulationView extends Pane {
             }
         }
 
-        // Draw active chunk transfers (pulsing dots)
-        for (PeerNode peer : peers) {
-            for (Transfer transfer : peer.getActiveTransfers()) {
-                PeerNode from = transfer.getSender();
-                PeerNode to = transfer.getReceiver();
+        if (!downloadComplete && !downloadFailed ) {
+            // Draw active chunk transfers
+            for (PeerNode peer : peers) {
+                for (Transfer transfer : peer.getActiveTransfers()) {
+                    PeerNode from = transfer.getSender();
+                    PeerNode to = transfer.getReceiver();
 
-                // Midpoint and direction
-                double dx = to.getX() - from.getX();
-                double dy = to.getY() - from.getY();
-                double angle = Math.toDegrees(Math.atan2(dy, dx));
+                    // Midpoint and direction
+                    double dx = to.getX() - from.getX();
+                    double dy = to.getY() - from.getY();
+                    double angle = Math.toDegrees(Math.atan2(dy, dx));
 
-                // Create arrow polygon
-                Polygon arrow = new Polygon();
-                arrow.getPoints().addAll(
-                        0.0, -5.0,   // tip
-                        10.0, 0.0,   // base right
-                        0.0, 5.0     // base left
-                );
-                arrow.setFill(Color.LIMEGREEN);
-                arrow.setStroke(Color.BLACK);
-                arrow.setStrokeWidth(0.5);
+                    // Create arrow polygon
+                    Polygon arrow = new Polygon();
+                    arrow.getPoints().addAll(
+                            0.0, -5.0,   // tip
+                            10.0, 0.0,   // base right
+                            0.0, 5.0     // base left
+                    );
+                    arrow.setFill(Color.LIMEGREEN);
+                    arrow.setStroke(Color.BLACK);
+                    arrow.setStrokeWidth(0.5);
 
-                // Start at sender's coordinates
-                arrow.setTranslateX(from.getX());
-                arrow.setTranslateY(from.getY());
-                arrow.setRotate(angle);
-                this.getChildren().add(arrow);
+                    // Start at sender's coordinates
+                    arrow.setTranslateX(from.getX());
+                    arrow.setTranslateY(from.getY());
+                    arrow.setRotate(angle);
+                    this.getChildren().add(arrow);
 
-                // Define path: straight line to receiver
-                Path path = new Path();
-                path.getElements().add(new MoveTo(from.getX(), from.getY()));
-                path.getElements().add(new LineTo(to.getX(), to.getY()));
+                    // Define path: straight line to receiver
+                    Path path = new Path();
+                    path.getElements().add(new MoveTo(from.getX(), from.getY()));
+                    path.getElements().add(new LineTo(to.getX(), to.getY()));
 
-                // Animate the arrow along the path
-                PathTransition move = new PathTransition();
-                move.setNode(arrow);
-                move.setPath(path);
+                    // Animate the arrow along the path
+                    PathTransition move = new PathTransition();
+                    move.setNode(arrow);
+                    move.setPath(path);
 
-                double distance = Math.hypot(to.getX() - from.getX(), to.getY() - from.getY());
-                double speed = 0.2; // pixels per millisecond
-                double durationMs = distance / speed;
+                    move.setDuration(Duration.millis(tickDurationMs * 0.95));
 
-                move.setDuration(Duration.millis(durationMs));
-
-                move.setCycleCount(1);
-                move.setOnFinished(evt -> this.getChildren().remove(arrow));
-                move.play();
+                    move.setCycleCount(1);
+                    move.setOnFinished(evt -> this.getChildren().remove(arrow));
+                    move.play();
+                }
             }
         }
 
@@ -171,6 +172,30 @@ public class SimulationView extends Pane {
             summary.setFill(Color.WHITE);
             summary.setStyle("-fx-font-size: 14; -fx-font-family: monospace;");
             this.getChildren().add(summary);
+        }
+    }
+
+    public void setSpeedMultiplier(double speedMultiplier) {
+        if (timeline != null) {
+            timeline.stop();
+            this.tickDurationMs = (long)(500 / speedMultiplier);
+            timeline.getKeyFrames().setAll(new KeyFrame(Duration.millis(this.tickDurationMs), e -> {
+                controller.tick();
+                drawNetwork();
+
+                if (!downloadComplete && controller.getDownloadTarget().hasCompleteFile()) {
+                    downloadComplete = true;
+                    buildReportSummary();
+                    drawNetwork();
+                }
+
+                if (!downloadComplete && controller.downloadFailed()) {
+                    downloadFailed = true;
+                    buildReportSummary();
+                    drawNetwork();
+                }
+            }));
+            timeline.play();
         }
     }
 
@@ -205,6 +230,9 @@ public class SimulationView extends Pane {
         int downloaded = target.getOwnedChunks().size();
         int missing = totalChunks - downloaded;
 
+        long simulatedTimeMs = controller.getTickCount() * Constants.DEFAULT_TICK_DUR_MS;
+        long simulatedSeconds = simulatedTimeMs / 1000;
+
         int totalConnections = controller
                 .getPeers()
                 .stream()
@@ -226,7 +254,8 @@ public class SimulationView extends Pane {
 
         summaryReport = String.format("""
             %s
-            Time Elapsed: %d seconds
+            Time Elapsed (simulated): %d seconds
+            Time Elapsed (actual): %d seconds
             Chunks Downloaded: %d/%d
             Chunks Missing: %d
             Active Peers: %d
@@ -236,6 +265,7 @@ public class SimulationView extends Pane {
             """,
                 status,
                 timeElapsed,
+                simulatedSeconds,
                 downloaded, this.totalChunks,
                 missing,
                 controller.getPeers().size(),
