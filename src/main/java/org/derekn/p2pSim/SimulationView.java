@@ -1,11 +1,13 @@
 package org.derekn.p2pSim;
 
+import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Polygon;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
@@ -104,13 +106,36 @@ public class SimulationView extends Pane {
                 double x = (from.getX() + to.getX()) / 2;
                 double y = (from.getY() + to.getY()) / 2;
 
-                // Small green dot to show active transfer
-                Circle pulse = new Circle(x, y, 4);
-                pulse.setFill(Color.LIMEGREEN);
-                pulse.setStroke(Color.BLACK);
-                pulse.setStrokeWidth(0.5);
+                // Calculate angle to rotate arrowhead
+                double dx = to.getX() - from.getX();
+                double dy = to.getY() - from.getY();
+                double angle = Math.toDegrees(Math.atan2(dy, dx));
 
-                this.getChildren().add(pulse);
+                // Create a small triangle pointing toward the receiver
+                Polygon arrow = new Polygon();
+                arrow.getPoints().addAll(
+                        0.0, -5.0,   // top point
+                        10.0, 0.0,   // right corner
+                        0.0, 5.0     // bottom point
+                );
+                arrow.setFill(Color.LIMEGREEN);
+                arrow.setStroke(Color.BLACK);
+                arrow.setStrokeWidth(0.5);
+
+                // Position and rotate
+                arrow.setTranslateX(x);
+                arrow.setTranslateY(y);
+                arrow.setRotate(angle);
+
+                // Fade animation
+                FadeTransition fade = new FadeTransition(Duration.millis(400), arrow);
+                fade.setFromValue(1.0);
+                fade.setToValue(0.0);
+                fade.setCycleCount(1);
+                fade.play();
+
+                this.getChildren().add(arrow);
+
             }
         }
 
