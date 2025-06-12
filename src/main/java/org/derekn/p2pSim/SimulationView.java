@@ -16,7 +16,7 @@ import java.util.Map;
 public class SimulationView extends Pane {
     private SimulationController controller;
     private Timeline timeline;
-    private Map<Integer, Circle> nodeCircles;
+    private final Map<Integer, Circle> nodeCircles;
     private int totalChunks;
     private boolean downloadComplete = false;
     private boolean downloadFailed = false;
