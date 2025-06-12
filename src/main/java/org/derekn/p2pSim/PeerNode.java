@@ -1,6 +1,8 @@
 package org.derekn.p2pSim;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public abstract class PeerNode extends NetworkNode {
@@ -8,6 +10,7 @@ public abstract class PeerNode extends NetworkNode {
     protected double uploadSpeed;
     protected double downloadSpeed;
     protected int totalChunks;
+    private List<Transfer> activeTransfers = new ArrayList<>();
 
     public PeerNode(int id, double x, double y, int totalChunks) {
         super(id, x, y);
@@ -49,6 +52,14 @@ public abstract class PeerNode extends NetworkNode {
 
     public double getDownloadSpeed() {
         return downloadSpeed;
+    }
+
+    public void addTransfer(Transfer t) {
+        activeTransfers.add(t);
+    }
+
+    public void clearTransfers() {
+        activeTransfers.clear();
     }
 
     public abstract String getNodeType();
