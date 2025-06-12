@@ -16,7 +16,7 @@ import java.util.Map;
 public class SimulationView extends Pane {
     private SimulationController controller;
     private Timeline timeline;
-    private Map<Integer, Circle> nodeCircles;
+    private final Map<Integer, Circle> nodeCircles;
     private int totalChunks;
     private boolean downloadComplete = false;
     private boolean downloadFailed = false;
@@ -31,7 +31,7 @@ public class SimulationView extends Pane {
         this.nodeCircles = new HashMap<>();
     }
 
-    public void start(int initialPeers, int totalChunks) {
+    public void start(int initialPeers, int totalChunks, int chunkSizeBytes, long fileSizeBytes) {
         this.startTimeMs = System.currentTimeMillis();
 
         if (timeline != null) timeline.stop();

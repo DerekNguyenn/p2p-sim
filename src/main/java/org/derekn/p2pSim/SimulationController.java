@@ -115,13 +115,6 @@ public class SimulationController {
                 // Debugging print
                 System.out.println("Peer " + toRemove.getId() + " disconnected.");
             }
-
-//            if (!(toRemove instanceof Seeder)) {
-//                allPeers.remove(toRemove);
-//                for (PeerNode peer : allPeers) {
-//                    peer.disconnectFrom(toRemove);
-//                }
-//            }
         }
 
         // Randomly add a new peer

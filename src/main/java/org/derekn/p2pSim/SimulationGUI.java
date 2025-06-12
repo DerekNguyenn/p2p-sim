@@ -27,15 +27,36 @@ public class SimulationGUI extends Application {
         peersLabel.setTextFill(Color.WHITE);
         TextField peersField = new TextField("10");
 
-        Label chunksLabel = new Label("Total Chunks:");
-        chunksLabel.setTextFill(Color.WHITE);
-        TextField chunksField = new TextField("10");
+        Label fileSizeLabel = new Label("File Size:");
+        fileSizeLabel.setTextFill(Color.WHITE);
+        TextField fileSizeValue = new TextField("10");
+
+        ComboBox<String> fileSizeUnit = new ComboBox<>();
+        fileSizeUnit.getItems().addAll("KB", "MB", "GB");
+        fileSizeUnit.setValue("MB");
+
+        HBox fileSizeBox = new HBox(5, fileSizeValue, fileSizeUnit);
+
+        Label chunkSizeLabel = new Label("Chunk Size:");
+        chunkSizeLabel.setTextFill(Color.WHITE);
+
+        TextField chunkSizeValue = new TextField("1"); // 1 MB default
+        ComboBox<String> chunkSizeUnit = new ComboBox<>();
+        chunkSizeUnit.getItems().addAll("KB", "MB");
+        chunkSizeUnit.setValue("MB");
+
+        HBox chunkSizeBox = new HBox(5, chunkSizeValue, chunkSizeUnit);
+
+        Label calculatedChunksLabel = new Label("Total Chunks: ?");
+        calculatedChunksLabel.setTextFill(Color.ORANGE);
 
         Button startButton = new Button("Start Simulation");
 
         inputPanel.getChildren().addAll(
                 peersLabel, peersField,
-                chunksLabel, chunksField,
+                fileSizeLabel, fileSizeBox,
+                chunkSizeLabel, chunkSizeBox,
+                calculatedChunksLabel,
                 startButton
         );
 
@@ -59,13 +80,64 @@ public class SimulationGUI extends Application {
         primaryStage.setTitle("P2P File Sharing Simulation");
         primaryStage.show();
 
+        // Live update total chunks as input changes
+        Runnable updateChunkCount = () -> {
+            try {
+                double fileValue = Double.parseDouble(fileSizeValue.getText());
+                int chunkValue = Integer.parseInt(chunkSizeValue.getText());
+                long chunkMultiplier = switch (chunkSizeUnit.getValue()) {
+                    case "MB" -> 1_048_576L;
+                    case "KB" -> 1_024L;
+                    default -> 1L;
+                };
+                int chunkSize = (int) (chunkValue * chunkMultiplier);
+
+                long multiplier = switch (fileSizeUnit.getValue()) {
+                    case "GB" -> Constants.GB;
+                    case "MB" -> Constants.MB;
+                    case "KB" -> Constants.KB;
+                    default -> 1L;
+                };
+
+                long fileSizeBytes = (long) (fileValue * multiplier);
+                int totalChunks = (int) Math.ceil((double) fileSizeBytes / chunkSize);
+
+                calculatedChunksLabel.setText("Total Chunks: " + totalChunks);
+            } catch (Exception ex) {
+                calculatedChunksLabel.setText("Total Chunks: ?");
+            }
+        };
+
+        // Hook up listeners to update live
+        fileSizeValue.textProperty().addListener((obs, oldVal, newVal) -> updateChunkCount.run());
+        fileSizeUnit.valueProperty().addListener((obs, oldVal, newVal) -> updateChunkCount.run());
+        chunkSizeValue.textProperty().addListener((obs, oldVal, newVal) -> updateChunkCount.run());
+        chunkSizeUnit.valueProperty().addListener((obs, oldVal, newVal) -> updateChunkCount.run());
+
         startButton.setOnAction(e -> {
             try {
                 int peers = Integer.parseInt(peersField.getText());
-                int chunks = Integer.parseInt(chunksField.getText());
-                simulationView.start(peers, chunks);
+                double fileVal = Double.parseDouble(fileSizeValue.getText());
+                int chunkValue = Integer.parseInt(chunkSizeValue.getText());
+                long chunkMultiplier = switch (chunkSizeUnit.getValue()) {
+                    case "MB" -> 1_048_576L;
+                    case "KB" -> 1_024L;
+                    default -> 1L;
+                };
+                int chunkSize = (int) (chunkValue * chunkMultiplier);
 
-                // Use a Timeline to keep progress bar updated
+                long multiplier = switch (fileSizeUnit.getValue()) {
+                    case "GB" -> 1_073_741_824L;
+                    case "MB" -> 1_048_576L;
+                    case "KB" -> 1_024L;
+                    default -> 1L;
+                };
+
+                long fileSize = (long) (fileVal * multiplier);
+                int totalChunks = (int) Math.ceil((double) fileSize / chunkSize);
+
+                simulationView.start(peers, totalChunks, chunkSize, fileSize);
+
                 Timeline progressUpdater = new Timeline(new KeyFrame(Duration.millis(500), evt -> {
                     progressBar.setProgress(simulationView.getDownloadProgress());
                 }));
@@ -73,15 +145,16 @@ public class SimulationGUI extends Application {
                 progressUpdater.play();
 
             } catch (NumberFormatException ex) {
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Please enter valid integers.");
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Please enter valid numbers.");
                 alert.showAndWait();
             }
         });
+
+        // Initial update
+        updateChunkCount.run();
     }
 
     public static void main(String[] args) {
         launch(args);
     }
 }
-
-
