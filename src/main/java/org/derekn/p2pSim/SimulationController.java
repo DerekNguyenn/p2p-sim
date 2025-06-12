@@ -10,10 +10,12 @@ public class SimulationController {
     private int tickCount;
     private int ticksSinceLastProgress = 0;
     private int lastChunkCount = 0;
+    private final int stallThreshold;
 
     // Constructor
     public SimulationController(int initialPeers, int totalChunks) {
         this.totalChunks = totalChunks;
+        this.stallThreshold = Math.max(10, totalChunks / 4);
         this.allPeers = new ArrayList<PeerNode>();
         this.simulationRunning = false;
         this.tickCount = 0;
@@ -173,7 +175,6 @@ public class SimulationController {
             ticksSinceLastProgress++;
         }
 
-        int stallThreshold = 20;
         return ticksSinceLastProgress >= stallThreshold;
     }
 
