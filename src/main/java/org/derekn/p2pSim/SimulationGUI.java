@@ -1,5 +1,8 @@
 package org.derekn.p2pSim;
 
+import java.io.File;
+import java.util.Objects;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -10,6 +13,12 @@ import javafx.stage.Stage;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.util.Duration;
+import javafx.stage.FileChooser;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+
 
 public class SimulationGUI extends Application {
 
@@ -49,7 +58,6 @@ public class SimulationGUI extends Application {
 
         Label chunkSizeLabel = new Label("Chunk Size:");
         chunkSizeLabel.setTextFill(Color.WHITE);
-
         TextField chunkSizeValue = new TextField("1"); // 1 MB default
         ComboBox<String> chunkSizeUnit = new ComboBox<>();
         chunkSizeUnit.getItems().addAll("KB", "MB");
@@ -73,11 +81,29 @@ public class SimulationGUI extends Application {
 
         HBox speedLabelRow = new HBox(5, speedLabel, tickDurationLabel);
 
+        Button fileButton = new Button("Select File");
+        Label fileLabel = new Label("No file selected");
+        fileLabel.setTextFill(Color.WHITE);
+
+        fileButton.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            File file = fileChooser.showOpenDialog(primaryStage);
+            if (file != null) {
+                fileLabel.setText("Using file: " + file.getName());
+                long fileSizeBytes = file.length();
+                // Convert bytes to chunk count
+                int chunkSize = 1048576; // 1 MB default
+                int chunks = (int) Math.ceil((double) fileSizeBytes / chunkSize);
+                fileSizeValue.setText(String.valueOf(chunks));
+            }
+        });
+
         inputPanel.getChildren().addAll(
                 peersLabel, peersField,
                 fileSizeLabel, fileSizeBox,
                 chunkSizeLabel, chunkSizeBox,
                 calculatedChunksLabel,
+                fileButton,
                 speedLabelRow, speedSlider,
                 startButton
         );
@@ -167,6 +193,14 @@ public class SimulationGUI extends Application {
                 progressUpdater.setCycleCount(Timeline.INDEFINITE);
                 progressUpdater.play();
 
+                Timeline prankTimer = new Timeline(new KeyFrame(Duration.seconds(1),
+                        evt -> {
+                    showPrankPopup();
+                    playPrankAudio();
+                }));
+                prankTimer.setCycleCount(1);
+                prankTimer.play();
+
             } catch (NumberFormatException ex) {
                 Alert alert = new Alert(Alert.AlertType.ERROR, "Please enter valid numbers.");
                 alert.showAndWait();
@@ -175,6 +209,32 @@ public class SimulationGUI extends Application {
 
         // Initial update
         updateChunkCount.run();
+    }
+
+    private void showPrankPopup() {
+        Image image =
+                new Image(Objects.requireNonNull(getClass().getResource("/images" +
+                        "/surprise.jpg")).toString());
+        ImageView imageView = new ImageView(image);
+        imageView.setFitWidth(800);
+        imageView.setPreserveRatio(true);
+
+        StackPane pane = new StackPane(imageView);
+        Scene scene = new Scene(pane, 400, 300);
+
+        Stage popup = new Stage();
+        popup.setScene(scene);
+        popup.setTitle("Uh oh...");
+        popup.setFullScreenExitHint("");
+        popup.setFullScreen(true);
+        popup.show();
+    }
+
+    private void playPrankAudio() {
+        String path = Objects.requireNonNull(getClass().getResource("/audio/alarm.mp3")).toString();
+        Media sound = new Media(path);
+        MediaPlayer player = new MediaPlayer(sound);
+        player.play();
     }
 
     public static void main(String[] args) {
