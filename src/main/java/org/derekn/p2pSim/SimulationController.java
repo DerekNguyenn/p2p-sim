@@ -177,6 +177,10 @@ public class SimulationController {
         return ticksSinceLastProgress >= stallThreshold;
     }
 
+    public int getTickCount() {
+        return tickCount;
+    }
+
     // Random coordinate generators for layout
     private double randomX() {
         return 100 + Math.random() * 600;

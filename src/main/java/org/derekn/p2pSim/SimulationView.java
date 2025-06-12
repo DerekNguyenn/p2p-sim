@@ -230,6 +230,9 @@ public class SimulationView extends Pane {
         int downloaded = target.getOwnedChunks().size();
         int missing = totalChunks - downloaded;
 
+        long simulatedTimeMs = controller.getTickCount() * Constants.DEFAULT_TICK_DUR_MS;
+        long simulatedSeconds = simulatedTimeMs / 1000;
+
         int totalConnections = controller
                 .getPeers()
                 .stream()
@@ -251,7 +254,8 @@ public class SimulationView extends Pane {
 
         summaryReport = String.format("""
             %s
-            Time Elapsed: %d seconds
+            Time Elapsed (simulated): %d seconds
+            Time Elapsed (actual): %d seconds
             Chunks Downloaded: %d/%d
             Chunks Missing: %d
             Active Peers: %d
@@ -261,6 +265,7 @@ public class SimulationView extends Pane {
             """,
                 status,
                 timeElapsed,
+                simulatedSeconds,
                 downloaded, this.totalChunks,
                 missing,
                 controller.getPeers().size(),
