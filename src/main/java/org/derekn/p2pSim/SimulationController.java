@@ -26,6 +26,7 @@ public class SimulationController {
             double y = randomY();
 
             PeerNode peer;
+
             if (i == 0) {
                 // First node is always Client (download target)
                 peer = new Client(i, x, y, totalChunks);
@@ -68,7 +69,6 @@ public class SimulationController {
         simulateChunkTransfers();
 
         // Debug logging prints
-        System.out.println(tickCount);
         System.out.println("Target missing: " + getDownloadTarget().getMissingChunks());
 
         for (NetworkNode conn : getDownloadTarget().getConnections()) {
@@ -120,7 +120,7 @@ public class SimulationController {
                 for (PeerNode peer : allPeers) {
                     peer.disconnectFrom(toRemove);
                 }
-                // Debugging print
+                // Debug logging print
                 System.out.println("Peer " + toRemove.getId() + " disconnected.");
             }
         }

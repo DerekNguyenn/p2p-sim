@@ -10,7 +10,7 @@ public abstract class PeerNode extends NetworkNode {
     protected double uploadSpeed;
     protected double downloadSpeed;
     protected int totalChunks;
-    private List<Transfer> activeTransfers = new ArrayList<>();
+    private final List<Transfer> activeTransfers = new ArrayList<>();
 
     public PeerNode(int id, double x, double y, int totalChunks) {
         super(id, x, y);
@@ -52,6 +52,10 @@ public abstract class PeerNode extends NetworkNode {
 
     public double getDownloadSpeed() {
         return downloadSpeed;
+    }
+
+    public List<Transfer> getActiveTransfers() {
+        return activeTransfers;
     }
 
     public void addTransfer(Transfer t) {

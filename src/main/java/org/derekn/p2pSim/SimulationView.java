@@ -94,6 +94,26 @@ public class SimulationView extends Pane {
             }
         }
 
+        // 🔄 Draw active chunk transfers (pulsing dots)
+        for (PeerNode peer : peers) {
+            for (Transfer transfer : peer.getActiveTransfers()) {
+                PeerNode from = transfer.getSender();
+                PeerNode to = transfer.getReceiver();
+
+                // Midpoint of the connection line
+                double x = (from.getX() + to.getX()) / 2;
+                double y = (from.getY() + to.getY()) / 2;
+
+                // Small green dot to show active transfer
+                Circle pulse = new Circle(x, y, 4);
+                pulse.setFill(Color.LIMEGREEN);
+                pulse.setStroke(Color.BLACK);
+                pulse.setStrokeWidth(0.5);
+
+                this.getChildren().add(pulse);
+            }
+        }
+
         // Draw nodes
         for (PeerNode peer : peers) {
             Color fillColor = getColorForType(peer);
