@@ -2,12 +2,11 @@ package org.derekn.p2pSim;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
+import javafx.animation.PathTransition;
 import javafx.animation.Timeline;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Polygon;
+import javafx.scene.shape.*;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
@@ -96,46 +95,53 @@ public class SimulationView extends Pane {
             }
         }
 
-        // 🔄 Draw active chunk transfers (pulsing dots)
+        // Draw active chunk transfers (pulsing dots)
         for (PeerNode peer : peers) {
             for (Transfer transfer : peer.getActiveTransfers()) {
                 PeerNode from = transfer.getSender();
                 PeerNode to = transfer.getReceiver();
 
-                // Midpoint of the connection line
-                double x = (from.getX() + to.getX()) / 2;
-                double y = (from.getY() + to.getY()) / 2;
-
-                // Calculate angle to rotate arrowhead
+                // Midpoint and direction
                 double dx = to.getX() - from.getX();
                 double dy = to.getY() - from.getY();
                 double angle = Math.toDegrees(Math.atan2(dy, dx));
 
-                // Create a small triangle pointing toward the receiver
+                // Create arrow polygon
                 Polygon arrow = new Polygon();
                 arrow.getPoints().addAll(
-                        0.0, -5.0,   // top point
-                        10.0, 0.0,   // right corner
-                        0.0, 5.0     // bottom point
+                        0.0, -5.0,   // tip
+                        10.0, 0.0,   // base right
+                        0.0, 5.0     // base left
                 );
                 arrow.setFill(Color.LIMEGREEN);
                 arrow.setStroke(Color.BLACK);
                 arrow.setStrokeWidth(0.5);
 
-                // Position and rotate
-                arrow.setTranslateX(x);
-                arrow.setTranslateY(y);
+                // Start at sender's coordinates
+                arrow.setTranslateX(from.getX());
+                arrow.setTranslateY(from.getY());
                 arrow.setRotate(angle);
-
-                // Fade animation
-                FadeTransition fade = new FadeTransition(Duration.millis(400), arrow);
-                fade.setFromValue(1.0);
-                fade.setToValue(0.0);
-                fade.setCycleCount(1);
-                fade.play();
-
                 this.getChildren().add(arrow);
 
+                // Define path: straight line to receiver
+                Path path = new Path();
+                path.getElements().add(new MoveTo(from.getX(), from.getY()));
+                path.getElements().add(new LineTo(to.getX(), to.getY()));
+
+                // Animate the arrow along the path
+                PathTransition move = new PathTransition();
+                move.setNode(arrow);
+                move.setPath(path);
+
+                double distance = Math.hypot(to.getX() - from.getX(), to.getY() - from.getY());
+                double speed = 0.2; // pixels per millisecond
+                double durationMs = distance / speed;
+
+                move.setDuration(Duration.millis(durationMs));
+
+                move.setCycleCount(1);
+                move.setOnFinished(evt -> this.getChildren().remove(arrow));
+                move.play();
             }
         }
 
