@@ -2,6 +2,10 @@ package org.derekn.p2pSim;
 
 import java.util.*;
 
+/**
+ * Controls the overall simulation of the P2P file-sharing network.
+ * Manages peer creation, chunk transfers, and simulation ticks.
+ */
 public class SimulationController {
     private List<PeerNode> allPeers;
     private int totalChunks;
@@ -12,7 +16,11 @@ public class SimulationController {
     private int lastChunkCount = 0;
     private final int stallThreshold;
 
-    // Constructor
+    /**
+     * Constructs a SimulationController and initializes peers.
+     * @param initialPeers Number of peers to start with
+     * @param totalChunks Total number of file chunks in simulation
+     */
     public SimulationController(int initialPeers, int totalChunks) {
         this.totalChunks = totalChunks;
         this.stallThreshold = Math.max(10, totalChunks / 4);
