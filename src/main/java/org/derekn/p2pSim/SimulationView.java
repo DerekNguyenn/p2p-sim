@@ -160,10 +160,16 @@ public class SimulationView extends Pane {
             nodeCircles.put(peer.getId(), circle);
 
             // Chunk count label
-            Text label = new Text(peer.getX() - 10, peer.getY() + 4,
-                    String.valueOf(peer.getOwnedChunks().size()));
-            label.setFill(Color.BLACK);
+            Text label = new Text(String.valueOf(peer.getOwnedChunks().size()));
             label.setStyle("-fx-font-size: 10;");
+            label.setFill(Color.BLACK);
+
+            // Center text over node
+            double textWidth = label.getLayoutBounds().getWidth();
+            double textHeight = label.getLayoutBounds().getHeight();
+            label.setX(peer.getX() - textWidth / 2);
+            label.setY(peer.getY() + textHeight / 4);  // vertical centering fix
+
             this.getChildren().add(label);
         }
 
