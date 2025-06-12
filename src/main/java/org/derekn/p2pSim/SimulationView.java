@@ -1,6 +1,5 @@
 package org.derekn.p2pSim;
 
-import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.PathTransition;
 import javafx.animation.Timeline;
