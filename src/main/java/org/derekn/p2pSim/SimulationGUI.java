@@ -47,6 +47,12 @@ public class SimulationGUI extends Application {
         speedSlider.setMinorTickCount(4);
         speedSlider.setBlockIncrement(0.1);
 
+        Label tickDurationLabel = new Label("1.0x (Realtime)");
+        tickDurationLabel.setTextFill(Color.WHITE);
+        speedSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            tickDurationLabel.setText(String.format("%.1fx", newVal.doubleValue()));
+        });
+
         Label chunkSizeLabel = new Label("Chunk Size:");
         chunkSizeLabel.setTextFill(Color.WHITE);
 
@@ -62,12 +68,14 @@ public class SimulationGUI extends Application {
 
         Button startButton = new Button("Start Simulation");
 
+        HBox speedLabelRow = new HBox(5, speedLabel, tickDurationLabel);
+
         inputPanel.getChildren().addAll(
                 peersLabel, peersField,
                 fileSizeLabel, fileSizeBox,
                 chunkSizeLabel, chunkSizeBox,
                 calculatedChunksLabel,
-                speedLabel, speedSlider,
+                speedLabelRow, speedSlider,
                 startButton
         );
 
@@ -147,7 +155,10 @@ public class SimulationGUI extends Application {
                 long fileSize = (long) (fileVal * multiplier);
                 int totalChunks = (int) Math.ceil((double) fileSize / chunkSize);
 
-                simulationView.start(peers, totalChunks, chunkSize, fileSize);
+                double speedMultiplier = speedSlider.getValue();
+
+                simulationView.start(peers, totalChunks, chunkSize, fileSize,
+                        speedMultiplier);
 
                 Timeline progressUpdater = new Timeline(new KeyFrame(Duration.millis(500), evt -> {
                     progressBar.setProgress(simulationView.getDownloadProgress());

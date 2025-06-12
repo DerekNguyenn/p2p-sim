@@ -32,7 +32,8 @@ public class SimulationView extends Pane {
         this.nodeCircles = new HashMap<>();
     }
 
-    public void start(int initialPeers, int totalChunks, int chunkSizeBytes, long fileSizeBytes) {
+    public void start(int initialPeers, int totalChunks, int chunkSizeBytes,
+                      long fileSizeBytes, double speedMultiplier) {
         this.startTimeMs = System.currentTimeMillis();
 
         if (timeline != null) timeline.stop();
@@ -41,7 +42,9 @@ public class SimulationView extends Pane {
         this.totalChunks = totalChunks;
         controller.startSimulation();
 
-        timeline = new Timeline(new KeyFrame(Duration.millis(500), e -> {
+        long tickDuration = (long)(500 / speedMultiplier); // default is 500ms
+
+        timeline = new Timeline(new KeyFrame(Duration.millis(tickDuration), e -> {
             controller.tick();
 
             PeerNode target = controller.getDownloadTarget();
