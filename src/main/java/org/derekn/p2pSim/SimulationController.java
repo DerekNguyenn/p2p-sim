@@ -26,6 +26,7 @@ public class SimulationController {
             double y = randomY();
 
             PeerNode peer;
+
             if (i == 0) {
                 // First node is always Client (download target)
                 peer = new Client(i, x, y, totalChunks);
@@ -68,7 +69,6 @@ public class SimulationController {
         simulateChunkTransfers();
 
         // Debug logging prints
-        System.out.println(tickCount);
         System.out.println("Target missing: " + getDownloadTarget().getMissingChunks());
 
         for (NetworkNode conn : getDownloadTarget().getConnections()) {
@@ -92,10 +92,18 @@ public class SimulationController {
 
     private void simulateChunkTransfers() {
         for (PeerNode node : allPeers) {
-            if (node instanceof Leecher) {
+            node.clearTransfers();
+
+            if (node instanceof Leecher leecher) {
                 for (NetworkNode neighbor : node.getConnections()) {
                     if (neighbor instanceof PeerNode otherPeer) {
-                        ((Leecher) node).downloadFrom(otherPeer);
+                        if (leecher.downloadFrom(otherPeer)) {
+                            leecher.addTransfer(new Transfer(otherPeer, leecher));
+
+                            // Debug logging print
+                            System.out.printf("Tick %d: Peer %d received chunk from Peer %d%n",
+                                    tickCount, leecher.getId(), otherPeer.getId());
+                        }
                     }
                 }
             }
@@ -112,7 +120,7 @@ public class SimulationController {
                 for (PeerNode peer : allPeers) {
                     peer.disconnectFrom(toRemove);
                 }
-                // Debugging print
+                // Debug logging print
                 System.out.println("Peer " + toRemove.getId() + " disconnected.");
             }
         }

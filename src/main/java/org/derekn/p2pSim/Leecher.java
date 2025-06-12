@@ -9,12 +9,13 @@ public class Leecher extends PeerNode {
         return "Leecher";
     }
 
-    public void downloadFrom(PeerNode peer) {
+    public boolean downloadFrom(PeerNode peer) {
         for (int chunk : peer.getOwnedChunks()) {
             if (!this.ownedChunks.contains(chunk)) {
                 this.receiveChunk(chunk);
-                break; // One chunk per tick
+                return true; // One chunk per tick
             }
         }
+        return false;
     }
 }
