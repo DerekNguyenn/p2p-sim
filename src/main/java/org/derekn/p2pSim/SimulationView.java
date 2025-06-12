@@ -98,49 +98,51 @@ public class SimulationView extends Pane {
             }
         }
 
-        // Draw active chunk transfers (pulsing dots)
-        for (PeerNode peer : peers) {
-            for (Transfer transfer : peer.getActiveTransfers()) {
-                PeerNode from = transfer.getSender();
-                PeerNode to = transfer.getReceiver();
+        if (!downloadComplete && !downloadFailed ) {
+            // Draw active chunk transfers
+            for (PeerNode peer : peers) {
+                for (Transfer transfer : peer.getActiveTransfers()) {
+                    PeerNode from = transfer.getSender();
+                    PeerNode to = transfer.getReceiver();
 
-                // Midpoint and direction
-                double dx = to.getX() - from.getX();
-                double dy = to.getY() - from.getY();
-                double angle = Math.toDegrees(Math.atan2(dy, dx));
+                    // Midpoint and direction
+                    double dx = to.getX() - from.getX();
+                    double dy = to.getY() - from.getY();
+                    double angle = Math.toDegrees(Math.atan2(dy, dx));
 
-                // Create arrow polygon
-                Polygon arrow = new Polygon();
-                arrow.getPoints().addAll(
-                        0.0, -5.0,   // tip
-                        10.0, 0.0,   // base right
-                        0.0, 5.0     // base left
-                );
-                arrow.setFill(Color.LIMEGREEN);
-                arrow.setStroke(Color.BLACK);
-                arrow.setStrokeWidth(0.5);
+                    // Create arrow polygon
+                    Polygon arrow = new Polygon();
+                    arrow.getPoints().addAll(
+                            0.0, -5.0,   // tip
+                            10.0, 0.0,   // base right
+                            0.0, 5.0     // base left
+                    );
+                    arrow.setFill(Color.LIMEGREEN);
+                    arrow.setStroke(Color.BLACK);
+                    arrow.setStrokeWidth(0.5);
 
-                // Start at sender's coordinates
-                arrow.setTranslateX(from.getX());
-                arrow.setTranslateY(from.getY());
-                arrow.setRotate(angle);
-                this.getChildren().add(arrow);
+                    // Start at sender's coordinates
+                    arrow.setTranslateX(from.getX());
+                    arrow.setTranslateY(from.getY());
+                    arrow.setRotate(angle);
+                    this.getChildren().add(arrow);
 
-                // Define path: straight line to receiver
-                Path path = new Path();
-                path.getElements().add(new MoveTo(from.getX(), from.getY()));
-                path.getElements().add(new LineTo(to.getX(), to.getY()));
+                    // Define path: straight line to receiver
+                    Path path = new Path();
+                    path.getElements().add(new MoveTo(from.getX(), from.getY()));
+                    path.getElements().add(new LineTo(to.getX(), to.getY()));
 
-                // Animate the arrow along the path
-                PathTransition move = new PathTransition();
-                move.setNode(arrow);
-                move.setPath(path);
+                    // Animate the arrow along the path
+                    PathTransition move = new PathTransition();
+                    move.setNode(arrow);
+                    move.setPath(path);
 
-                move.setDuration(Duration.millis(tickDurationMs * 0.95));
+                    move.setDuration(Duration.millis(tickDurationMs * 0.95));
 
-                move.setCycleCount(1);
-                move.setOnFinished(evt -> this.getChildren().remove(arrow));
-                move.play();
+                    move.setCycleCount(1);
+                    move.setOnFinished(evt -> this.getChildren().remove(arrow));
+                    move.play();
+                }
             }
         }
 
