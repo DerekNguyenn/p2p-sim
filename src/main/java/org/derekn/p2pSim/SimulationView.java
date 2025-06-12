@@ -25,6 +25,7 @@ public class SimulationView extends Pane {
     private int lastChunkCount = 0;
     private int ticksSinceLastChunk = 0;
     private final int stallThreshold = 20;
+    private long tickDurationMs = 500;
     private String summaryReport;
 
     public SimulationView() {
@@ -42,9 +43,9 @@ public class SimulationView extends Pane {
         this.totalChunks = totalChunks;
         controller.startSimulation();
 
-        long tickDuration = (long)(500 / speedMultiplier); // default is 500ms
+        this.tickDurationMs = (long)(500 / speedMultiplier); // default is 500ms
 
-        timeline = new Timeline(new KeyFrame(Duration.millis(tickDuration), e -> {
+        timeline = new Timeline(new KeyFrame(Duration.millis(tickDurationMs), e -> {
             controller.tick();
 
             PeerNode target = controller.getDownloadTarget();
@@ -136,11 +137,11 @@ public class SimulationView extends Pane {
                 move.setNode(arrow);
                 move.setPath(path);
 
-                double distance = Math.hypot(to.getX() - from.getX(), to.getY() - from.getY());
-                double speed = 0.2; // pixels per millisecond
-                double durationMs = distance / speed;
+//                double distance = Math.hypot(to.getX() - from.getX(), to.getY() - from.getY());
+//                double speed = 0.2; // pixels per millisecond
+//                double durationMs = distance / speed;
 
-                move.setDuration(Duration.millis(durationMs));
+                move.setDuration(Duration.millis(tickDurationMs * 0.95));
 
                 move.setCycleCount(1);
                 move.setOnFinished(evt -> this.getChildren().remove(arrow));
@@ -180,8 +181,8 @@ public class SimulationView extends Pane {
     public void setSpeedMultiplier(double speedMultiplier) {
         if (timeline != null) {
             timeline.stop();
-            long newTickDuration = (long)(500 / speedMultiplier);
-            timeline.getKeyFrames().setAll(new KeyFrame(Duration.millis(newTickDuration), e -> {
+            this.tickDurationMs = (long)(500 / speedMultiplier);
+            timeline.getKeyFrames().setAll(new KeyFrame(Duration.millis(this.tickDurationMs), e -> {
                 controller.tick();
                 drawNetwork();
 
