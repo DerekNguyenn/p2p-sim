@@ -137,10 +137,6 @@ public class SimulationView extends Pane {
                 move.setNode(arrow);
                 move.setPath(path);
 
-//                double distance = Math.hypot(to.getX() - from.getX(), to.getY() - from.getY());
-//                double speed = 0.2; // pixels per millisecond
-//                double durationMs = distance / speed;
-
                 move.setDuration(Duration.millis(tickDurationMs * 0.95));
 
                 move.setCycleCount(1);
