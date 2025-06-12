@@ -177,6 +177,30 @@ public class SimulationView extends Pane {
         }
     }
 
+    public void setSpeedMultiplier(double speedMultiplier) {
+        if (timeline != null) {
+            timeline.stop();
+            long newTickDuration = (long)(500 / speedMultiplier);
+            timeline.getKeyFrames().setAll(new KeyFrame(Duration.millis(newTickDuration), e -> {
+                controller.tick();
+                drawNetwork();
+
+                if (!downloadComplete && controller.getDownloadTarget().hasCompleteFile()) {
+                    downloadComplete = true;
+                    buildReportSummary();
+                    drawNetwork();
+                }
+
+                if (!downloadComplete && controller.downloadFailed()) {
+                    downloadFailed = true;
+                    buildReportSummary();
+                    drawNetwork();
+                }
+            }));
+            timeline.play();
+        }
+    }
+
     public double getDownloadProgress() {
         PeerNode target = controller.getDownloadTarget();
         return (double) target.getOwnedChunks().size() / totalChunks;

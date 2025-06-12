@@ -47,12 +47,6 @@ public class SimulationGUI extends Application {
         speedSlider.setMinorTickCount(4);
         speedSlider.setBlockIncrement(0.1);
 
-        Label tickDurationLabel = new Label("1.0x (Realtime)");
-        tickDurationLabel.setTextFill(Color.WHITE);
-        speedSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            tickDurationLabel.setText(String.format("%.1fx", newVal.doubleValue()));
-        });
-
         Label chunkSizeLabel = new Label("Chunk Size:");
         chunkSizeLabel.setTextFill(Color.WHITE);
 
@@ -68,6 +62,15 @@ public class SimulationGUI extends Application {
 
         Button startButton = new Button("Start Simulation");
 
+        SimulationView simulationView = new SimulationView();
+
+        Label tickDurationLabel = new Label("1.0x (Realtime)");
+        tickDurationLabel.setTextFill(Color.WHITE);
+        speedSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            tickDurationLabel.setText(String.format("%.1fx", newVal.doubleValue()));
+            simulationView.setSpeedMultiplier(newVal.doubleValue()); // realtime update
+        });
+
         HBox speedLabelRow = new HBox(5, speedLabel, tickDurationLabel);
 
         inputPanel.getChildren().addAll(
@@ -78,8 +81,6 @@ public class SimulationGUI extends Application {
                 speedLabelRow, speedSlider,
                 startButton
         );
-
-        SimulationView simulationView = new SimulationView();
 
         StackPane simulationPane = new StackPane(simulationView);
         simulationPane.setStyle("-fx-background-color: #000000;");
