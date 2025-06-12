@@ -92,10 +92,18 @@ public class SimulationController {
 
     private void simulateChunkTransfers() {
         for (PeerNode node : allPeers) {
-            if (node instanceof Leecher) {
+            node.clearTransfers();
+
+            if (node instanceof Leecher leecher) {
                 for (NetworkNode neighbor : node.getConnections()) {
                     if (neighbor instanceof PeerNode otherPeer) {
-                        ((Leecher) node).downloadFrom(otherPeer);
+                        if (leecher.downloadFrom(otherPeer)) {
+                            leecher.addTransfer(new Transfer(otherPeer, leecher));
+
+                            // Debug logging print
+                            System.out.printf("Tick %d: Peer %d received chunk from Peer %d%n",
+                                    tickCount, leecher.getId(), otherPeer.getId());
+                        }
                     }
                 }
             }
