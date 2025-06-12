@@ -37,6 +37,16 @@ public class SimulationGUI extends Application {
 
         HBox fileSizeBox = new HBox(5, fileSizeValue, fileSizeUnit);
 
+        Label speedLabel = new Label("Simulation Speed:");
+        speedLabel.setTextFill(Color.WHITE);
+
+        Slider speedSlider = new Slider(0.1, 5.0, 1.0); // 0.1x to 5x speed
+        speedSlider.setShowTickLabels(true);
+        speedSlider.setShowTickMarks(true);
+        speedSlider.setMajorTickUnit(1);
+        speedSlider.setMinorTickCount(4);
+        speedSlider.setBlockIncrement(0.1);
+
         Label chunkSizeLabel = new Label("Chunk Size:");
         chunkSizeLabel.setTextFill(Color.WHITE);
 
@@ -57,6 +67,7 @@ public class SimulationGUI extends Application {
                 fileSizeLabel, fileSizeBox,
                 chunkSizeLabel, chunkSizeBox,
                 calculatedChunksLabel,
+                speedLabel, speedSlider,
                 startButton
         );
 
