@@ -13,6 +13,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Visualization component for rendering the peer-to-peer simulation.
+ * Uses JavaFX to display network nodes, connections, and live transfer animations.
+ */
 public class SimulationView extends Pane {
     private SimulationController controller;
     private Timeline timeline;
@@ -31,7 +35,9 @@ public class SimulationView extends Pane {
         this.nodeCircles = new HashMap<>();
     }
 
-
+    /**
+     * Starts the simulation and initializes rendering loop.
+     */
     public void start(int initialPeers, int totalChunks, int chunkSizeBytes,
                       long fileSizeBytes, double speedMultiplier) {
         this.startTimeMs = System.currentTimeMillis();
@@ -42,15 +48,16 @@ public class SimulationView extends Pane {
         this.totalChunks = totalChunks;
         controller.startSimulation();
 
-        this.tickDurationMs = (long)(Constants.DEFAULT_TICK_DUR_MS / speedMultiplier); // default is 500ms
+        this.tickDurationMs = (long)(Constants.DEFAULT_TICK_DUR_MS / speedMultiplier);
 
+        // Set up the rendering and simulation update loop
         timeline = new Timeline(new KeyFrame(Duration.millis(tickDurationMs), e -> {
             controller.tick();
 
-            PeerNode target = controller.getDownloadTarget(); // Client peer
+            PeerNode target = controller.getDownloadTarget();
             int currentChunkCount = target.getOwnedChunks().size();
 
-            // Check for progress
+            // Track progress by chunk count
             if (currentChunkCount > lastChunkCount) {
                 ticksSinceLastChunk = 0;
                 lastChunkCount = currentChunkCount;
@@ -58,7 +65,7 @@ public class SimulationView extends Pane {
                 ticksSinceLastChunk++;
             }
 
-            // Download complete
+            // Check if download has completed
             if (!downloadComplete && target.hasCompleteFile()) {
                 downloadComplete = true;
                 buildReportSummary();
@@ -66,7 +73,7 @@ public class SimulationView extends Pane {
                 drawNetwork();
             }
 
-            // Download failure
+            // Check if download has failed due to stalling
             if (!downloadComplete && !downloadFailed && ticksSinceLastChunk >= controller.stallThreshold) {
                 downloadFailed = true;
                 buildReportSummary();
@@ -76,20 +83,24 @@ public class SimulationView extends Pane {
 
             drawNetwork();
         }));
+
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
     }
 
+    /**
+     * Draws the current state of the network: nodes, connections, and transfers.
+     */
     private void drawNetwork() {
         this.getChildren().clear();
         nodeCircles.clear();
 
         List<PeerNode> peers = controller.getPeers();
 
-        // Draw connections first (lines)
+        // Draw static peer-to-peer connections
         for (PeerNode node : peers) {
             for (NetworkNode conn : node.getConnections()) {
-                if (conn.getId() > node.getId()) {
+                if (conn.getId() > node.getId()) { // Avoid drawing duplicate lines
                     Line edge = new Line(node.getX(), node.getY(), conn.getX(), conn.getY());
                     edge.setStroke(Color.web("#777777"));
                     edge.setStrokeWidth(1.0);
@@ -98,47 +109,35 @@ public class SimulationView extends Pane {
             }
         }
 
+        // Draw dynamic transfer arrows only if simulation is running
         if (!downloadComplete && !downloadFailed ) {
-            // Draw active chunk transfers
             for (PeerNode peer : peers) {
                 for (Transfer transfer : peer.getActiveTransfers()) {
                     PeerNode from = transfer.getSender();
                     PeerNode to = transfer.getReceiver();
 
-                    // Midpoint and direction
                     double dx = to.getX() - from.getX();
                     double dy = to.getY() - from.getY();
                     double angle = Math.toDegrees(Math.atan2(dy, dx));
 
-                    // Create arrow polygon
                     Polygon arrow = new Polygon();
-                    arrow.getPoints().addAll(
-                            0.0, -5.0,   // tip
-                            10.0, 0.0,   // base right
-                            0.0, 5.0     // base left
-                    );
+                    arrow.getPoints().addAll(0.0, -5.0, 10.0, 0.0, 0.0, 5.0);
                     arrow.setFill(Color.LIMEGREEN);
                     arrow.setStroke(Color.BLACK);
                     arrow.setStrokeWidth(0.5);
-
-                    // Start at sender's coordinates
                     arrow.setTranslateX(from.getX());
                     arrow.setTranslateY(from.getY());
                     arrow.setRotate(angle);
                     this.getChildren().add(arrow);
 
-                    // Define path: straight line to receiver
                     Path path = new Path();
                     path.getElements().add(new MoveTo(from.getX(), from.getY()));
                     path.getElements().add(new LineTo(to.getX(), to.getY()));
 
-                    // Animate the arrow along the path
                     PathTransition move = new PathTransition();
                     move.setNode(arrow);
                     move.setPath(path);
-
                     move.setDuration(Duration.millis(tickDurationMs * 0.95));
-
                     move.setCycleCount(1);
                     move.setOnFinished(evt -> this.getChildren().remove(arrow));
                     move.play();
@@ -146,7 +145,7 @@ public class SimulationView extends Pane {
             }
         }
 
-        // Draw nodes
+        // Draw each node as a colored circle with a chunk count label
         for (PeerNode peer : peers) {
             Color fillColor = getColorForType(peer);
             double radius = getRadiusForType(peer);
@@ -155,24 +154,22 @@ public class SimulationView extends Pane {
             circle.setFill(fillColor);
             circle.setStroke(Color.WHITE);
             circle.setStrokeWidth(1.0);
-
             this.getChildren().add(circle);
             nodeCircles.put(peer.getId(), circle);
 
-            // Chunk count label
             Text label = new Text(String.valueOf(peer.getOwnedChunks().size()));
             label.setStyle("-fx-font-size: 10;");
             label.setFill(Color.BLACK);
 
-            // Center text over node
             double textWidth = label.getLayoutBounds().getWidth();
             double textHeight = label.getLayoutBounds().getHeight();
             label.setX(peer.getX() - textWidth / 2);
-            label.setY(peer.getY() + textHeight / 4);  // vertical centering fix
+            label.setY(peer.getY() + textHeight / 4);
 
             this.getChildren().add(label);
         }
 
+        // Render final report if simulation ends
         if (downloadComplete || downloadFailed) {
             Text summary = new Text(20, 40, summaryReport);
             summary.setFill(Color.WHITE);
@@ -230,6 +227,9 @@ public class SimulationView extends Pane {
         };
     }
 
+    /**
+     * Builds the simulation report shown after download completes or fails.
+     */
     private void buildReportSummary() {
         long timeElapsed = (System.currentTimeMillis() - startTimeMs) / 1000;
         PeerNode target = controller.getDownloadTarget();
@@ -282,4 +282,3 @@ public class SimulationView extends Pane {
         );
     }
 }
-
