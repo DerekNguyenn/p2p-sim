@@ -7,14 +7,14 @@ import java.util.*;
  * Manages peer creation, chunk transfers, and simulation ticks.
  */
 public class SimulationController {
-    private List<PeerNode> allPeers;
-    private int totalChunks;
+    private List<PeerNode> allPeers; // All peers in the simulation
+    private int totalChunks; // Total number of chunks to be downloaded
     private PeerNode downloadTarget; // The peer we are tracking for completion
-    private boolean simulationRunning;
-    private int tickCount;
-    private int ticksSinceLastProgress = 0;
-    private int lastChunkCount = 0;
-    public final int stallThreshold;
+    private boolean simulationRunning; // Flag to control simulation state
+    private int tickCount; // Number of ticks since simulation start
+    private int ticksSinceLastProgress = 0; // Ticks since last successful download
+    private int lastChunkCount = 0; // Last known chunk count for stall detection
+    public final int stallThreshold; // Number of idle ticks before detecting stall
 
     /**
      * Constructs a SimulationController and initializes peers.
@@ -23,15 +23,17 @@ public class SimulationController {
      */
     public SimulationController(int initialPeers, int totalChunks) {
         this.totalChunks = totalChunks;
-        this.stallThreshold = Math.max(10, totalChunks / 4);
-        this.allPeers = new ArrayList<PeerNode>();
+        this.stallThreshold = Math.max(10, totalChunks / 4); // Define stalling condition
+        this.allPeers = new ArrayList<>();
         this.simulationRunning = false;
         this.tickCount = 0;
 
-        // Initialize the initial swarm
         createInitialPeers(initialPeers);
     }
 
+    /**
+     * Initializes a swarm of peers including a download target and seeders.
+     */
     private void createInitialPeers(int count) {
         for (int i = 0; i < count; i++) {
             double x = randomX();
@@ -40,11 +42,11 @@ public class SimulationController {
             PeerNode peer;
 
             if (i == 0) {
-                // First node is always the Client (download target)
+                // Designate the first node as the Client (download target)
                 peer = new Client(i, x, y, totalChunks);
                 this.downloadTarget = peer;
             } else if (i == 1) {
-                // Guarantee at least one Seeder exists
+                // Ensure at least one Seeder exists
                 peer = new Seeder(i, x, y, totalChunks);
             } else {
                 double r = Math.random();
@@ -62,10 +64,12 @@ public class SimulationController {
             allPeers.add(peer);
         }
 
-        // Randomly connect peers
-        connectPeersRandomly();
+        connectPeersRandomly(); // Establish initial connections
     }
 
+    /**
+     * Randomly creates bidirectional connections between peers.
+     */
     private void connectPeersRandomly() {
         for (PeerNode a : allPeers) {
             for (PeerNode b : allPeers) {
@@ -76,7 +80,9 @@ public class SimulationController {
         }
     }
 
-    // Simulate one tick (one time step)
+    /**
+     * Simulates one tick of activity: churn, transfers, progress updates.
+     */
     public void tick() {
         if (!simulationRunning) return;
 
@@ -85,30 +91,30 @@ public class SimulationController {
         simulateChurn();
         simulateChunkTransfers();
 
-        // Debug logging prints
+        // Debug: print current missing chunks for target
         System.out.println("Target missing: " + getDownloadTarget().getMissingChunks());
+
+        // Debug: print target's connections and their chunks
         for (NetworkNode conn : getDownloadTarget().getConnections()) {
             if (conn instanceof PeerNode p) {
                 System.out.print("Connected to Peer " + p.getId() + " with chunks: ");
-                if (p.getOwnedChunks().isEmpty()) {
-                    System.out.print("None");
-                } else {
-                    System.out.print(p.getOwnedChunks());
-                }
-                System.out.println();
+                System.out.println(p.getOwnedChunks().isEmpty() ? "None" : p.getOwnedChunks());
             }
         }
 
-        // Stop condition
+        // If file is fully downloaded, end the simulation
         if (downloadTarget.hasCompleteFile()) {
             simulationRunning = false;
             System.out.println("File download complete at tick " + tickCount);
         }
     }
 
+    /**
+     * Facilitates chunk transfers from neighbors to leechers.
+     */
     private void simulateChunkTransfers() {
         for (PeerNode node : allPeers) {
-            node.clearTransfers();
+            node.clearTransfers(); // Reset transfer logs for tick
 
             if (node instanceof Leecher leecher) {
                 for (NetworkNode neighbor : node.getConnections()) {
@@ -116,7 +122,7 @@ public class SimulationController {
                         if (leecher.downloadFrom(otherPeer)) {
                             leecher.addTransfer(new Transfer(otherPeer, leecher));
 
-                            // Debug logging print
+                            // Debug: Log successful transfer
                             System.out.printf("Tick %d: Peer %d received chunk from Peer %d%n",
                                     tickCount, leecher.getId(), otherPeer.getId());
                         }
@@ -126,8 +132,11 @@ public class SimulationController {
         }
     }
 
+    /**
+     * Simulates peer churn: randomly adds or removes nodes from the network.
+     */
     private void simulateChurn() {
-        // Randomly remove a node
+        // Randomly remove a peer
         if (Math.random() < 0.05 && allPeers.size() > 3) {
             PeerNode toRemove = allPeers.get(new Random().nextInt(allPeers.size()));
 
@@ -136,7 +145,6 @@ public class SimulationController {
                 for (PeerNode peer : allPeers) {
                     peer.disconnectFrom(toRemove);
                 }
-                // Debug logging print
                 System.out.println("Peer " + toRemove.getId() + " disconnected.");
             }
         }
@@ -148,7 +156,7 @@ public class SimulationController {
             PeerNode newPeer = new Leecher(id, x, y, totalChunks);
             allPeers.add(newPeer);
 
-            // Connect it to a few peers
+            // Connect new peer to up to 3 random existing peers
             for (int i = 0; i < 3; i++) {
                 PeerNode other = allPeers.get(new Random().nextInt(allPeers.size()));
                 newPeer.connectTo(other);
@@ -176,13 +184,17 @@ public class SimulationController {
         return downloadTarget;
     }
 
+    /**
+     * Determines whether the download is stalled based on lack of progress.
+     * @return true if stalled beyond threshold
+     */
     public boolean downloadFailed() {
         PeerNode target = getDownloadTarget();
         int currentChunkCount = target.getOwnedChunks().size();
 
         if (currentChunkCount > lastChunkCount) {
             lastChunkCount = currentChunkCount;
-            ticksSinceLastProgress = 0; // Reset if progress made
+            ticksSinceLastProgress = 0; // Reset timer on progress
         } else {
             ticksSinceLastProgress++;
         }
@@ -194,11 +206,12 @@ public class SimulationController {
         return tickCount;
     }
 
-    // Random coordinate generators for layout
+    // Generate random X coordinate for layout visualization
     private double randomX() {
         return 100 + Math.random() * 600;
     }
 
+    // Generate random Y coordinate for layout visualization
     private double randomY() {
         return 100 + Math.random() * 400;
     }
