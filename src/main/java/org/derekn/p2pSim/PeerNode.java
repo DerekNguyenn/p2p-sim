@@ -7,87 +7,108 @@ import java.util.Set;
 
 /**
  * Abstract class representing a peer node in the network.
- * Handles chunk ownership, file completeness check, and transfer tracking.
+ * Each peer can own file chunks and participate in data transfers.
+ * Handles logic for chunk management and active transfer tracking.
  */
 public abstract class PeerNode extends NetworkNode {
-    protected Set<Integer> ownedChunks;
-    protected double uploadSpeed;
-    protected double downloadSpeed;
-    protected int totalChunks;
-    private final List<Transfer> activeTransfers = new ArrayList<>();
+    protected Set<Integer> ownedChunks; // Chunks currently owned by this peer
+    protected double uploadSpeed;       // Upload speed in KB/s
+    protected double downloadSpeed;     // Download speed in KB/s
+    protected int totalChunks;          // Total chunks needed to complete the file
+    private final List<Transfer> activeTransfers = new ArrayList<>(); // Currently active transfers
 
     /**
-     * Constructs a new PeerNode.
-     * @param id Unique identifier
-     * @param x X-coordinate
-     * @param y Y-coordinate
-     * @param totalChunks Total number of file chunks
+     * Constructs a new PeerNode instance with specified properties.
+     * Random upload and download speeds simulate heterogeneous peers.
+     *
+     * @param id Unique identifier for the peer
+     * @param x X-coordinate of the peer
+     * @param y Y-coordinate of the peer
+     * @param totalChunks Total number of file chunks to be downloaded
      */
     public PeerNode(int id, double x, double y, int totalChunks) {
         super(id, x, y);
         this.totalChunks = totalChunks;
-        this.ownedChunks = new HashSet<Integer>();
-        this.uploadSpeed = 50 + Math.random() * 100; // 50 - 150 KB/s
-        this.downloadSpeed = 100 + Math.random() * 200; // 50 - 150 KB/s
+        this.ownedChunks = new HashSet<>();
+
+        // Randomized upload/download speeds for simulation realism
+        this.uploadSpeed = 50 + Math.random() * 100;     // Upload speed: 50–150 KB/s
+        this.downloadSpeed = 100 + Math.random() * 200;  // Download speed: 100–300 KB/s
     }
 
     /**
-     * Checks if this peer has a specific chunk.
+     * Checks if the peer already owns a specific chunk.
+     *
      * @param chunkIndex Index of the chunk
-     * @return true if the chunk is present
+     * @return true if the chunk is present; false otherwise
      */
     public boolean hasChunk(int chunkIndex) {
         return ownedChunks.contains(chunkIndex);
     }
 
     /**
-     * Checks if the peer has downloaded the complete file.
-     * @return true if all chunks are owned
+     * Determines whether the peer has completed downloading all file chunks.
+     *
+     * @return true if all chunks are owned; false otherwise
      */
     public boolean hasCompleteFile() {
         return ownedChunks.size() == totalChunks;
     }
 
     /**
-     * Adds a chunk to the set of owned chunks.
-     * @param chunkIndex Index of the chunk to receive
+     * Adds a chunk to the list of owned chunks.
+     *
+     * @param chunkIndex Index of the chunk to add
      */
     public void receiveChunk(int chunkIndex) {
         ownedChunks.add(chunkIndex);
     }
 
     /**
-     * Gets the set of owned chunks.
-     * @return Set of integers representing owned chunk indices
+     * Retrieves the set of chunks this peer owns.
+     *
+     * @return Set of chunk indices
      */
     public Set<Integer> getOwnedChunks() {
         return ownedChunks;
     }
 
     /**
-     * Gets the set of missing chunks.
-     * @return Set of chunk indices not yet downloaded
+     * Identifies all file chunks that this peer still needs.
+     *
+     * @return Set of missing chunk indices
      */
     public Set<Integer> getMissingChunks() {
         Set<Integer> missing = new HashSet<>();
         for (int i = 0; i < totalChunks; i++) {
             if (!ownedChunks.contains(i)) {
-                missing.add(i);
+                missing.add(i); // Add chunk if it's not owned
             }
         }
         return missing;
     }
 
+    /**
+     * Gets the upload speed of the peer.
+     *
+     * @return Upload speed in KB/s
+     */
     public double getUploadSpeed() {
         return uploadSpeed;
     }
 
+    /**
+     * Gets the download speed of the peer.
+     *
+     * @return Download speed in KB/s
+     */
     public double getDownloadSpeed() {
         return downloadSpeed;
     }
 
     /**
-     * Gets the list of active transfers this peer is participating in.
+     * Returns a list of current active transfers involving this peer.
+     *
      * @return List of active transfers
      */
     public List<Transfer> getActiveTransfers() {
@@ -95,23 +116,24 @@ public abstract class PeerNode extends NetworkNode {
     }
 
     /**
-     * Adds a transfer to the list of active transfers.
-     * @param t Transfer instance to add
+     * Adds a transfer to this peer's active transfer list.
+     *
+     * @param t Transfer to track
      */
     public void addTransfer(Transfer t) {
         activeTransfers.add(t);
     }
 
     /**
-     * Clears all active transfers.
+     * Clears all active transfer records from this peer.
+     * Called at the end of a simulation tick.
      */
     public void clearTransfers() {
         activeTransfers.clear();
     }
 
     /**
-     * Gets the node type.
-     * @return String representing the node type
+     * @return Node type as a string
      */
     public abstract String getNodeType();
 }
