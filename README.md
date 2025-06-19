@@ -18,6 +18,8 @@ This project simulates a **peer-to-peer (P2P) file sharing network** using JavaF
 - **JavaFX GUI**: Interactive setup and real-time network transfer visualization with progress tracking.
 - **Automatic stall detection** when downloads become near-impossible.
 
+- For more information, please view the [JavaDoc](https://dereknguyenn.github.io/p2p-sim/)
+
 ---
 
 ## Getting Started
