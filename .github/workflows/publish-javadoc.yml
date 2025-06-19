@@ -3,8 +3,9 @@ name: Deploy Javadoc
 on:
   push:
     branches:
-      - master
-      - main
+      - gh-pages
+#      - master
+#      - main
 
 jobs:
   publish:
