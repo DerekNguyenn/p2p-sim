@@ -20,7 +20,6 @@ public class Seeder extends PeerNode {
     }
 
     /**
-     * Gets the node type.
      * @return String representing the node type
      */
     public String getNodeType() {
