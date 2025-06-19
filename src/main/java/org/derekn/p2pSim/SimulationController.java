@@ -14,7 +14,7 @@ public class SimulationController {
     private int tickCount;
     private int ticksSinceLastProgress = 0;
     private int lastChunkCount = 0;
-    private final int stallThreshold;
+    public final int stallThreshold;
 
     /**
      * Constructs a SimulationController and initializes peers.
@@ -40,16 +40,21 @@ public class SimulationController {
             PeerNode peer;
 
             if (i == 0) {
-                // First node is always Client (download target)
+                // First node is always the Client (download target)
                 peer = new Client(i, x, y, totalChunks);
-                this.downloadTarget = peer; // assign as target
+                this.downloadTarget = peer;
             } else if (i == 1) {
-                // Second node is always a Seeder
+                // Guarantee at least one Seeder exists
                 peer = new Seeder(i, x, y, totalChunks);
-            } else if (Math.random() < 0.2) {
-                peer = new Supernode(i, x, y, totalChunks);
             } else {
-                peer = new Leecher(i, x, y, totalChunks);
+                double r = Math.random();
+                if (r < 0.2) {
+                    peer = new Supernode(i, x, y, totalChunks);
+                } else if (r < 0.5) {
+                    peer = new Seeder(i, x, y, totalChunks);
+                } else {
+                    peer = new Leecher(i, x, y, totalChunks);
+                }
             }
 
             System.out.printf("Created Peer %d: %s\n", peer.getId(), peer.getNodeType());
@@ -82,7 +87,6 @@ public class SimulationController {
 
         // Debug logging prints
         System.out.println("Target missing: " + getDownloadTarget().getMissingChunks());
-
         for (NetworkNode conn : getDownloadTarget().getConnections()) {
             if (conn instanceof PeerNode p) {
                 System.out.print("Connected to Peer " + p.getId() + " with chunks: ");
