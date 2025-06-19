@@ -1,7 +1,6 @@
 package org.derekn.p2pSim;
 
 import java.io.File;
-import java.util.Objects;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -14,11 +13,6 @@ import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.util.Duration;
 import javafx.stage.FileChooser;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
-
 
 public class SimulationGUI extends Application {
 
