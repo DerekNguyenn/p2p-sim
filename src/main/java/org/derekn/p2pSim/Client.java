@@ -18,7 +18,6 @@ public class Client extends Leecher {
     }
 
     /**
-     * Gets the node type.
      * @return String representing the node type
      */
     @Override
