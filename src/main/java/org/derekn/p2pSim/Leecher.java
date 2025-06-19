@@ -17,7 +17,6 @@ public class Leecher extends PeerNode {
     }
 
     /**
-     * Gets the node type.
      * @return String representing the node type
      */
     public String getNodeType() {
