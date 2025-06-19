@@ -23,7 +23,6 @@ public class SimulationView extends Pane {
     private long startTimeMs;
     private int lastChunkCount = 0;
     private int ticksSinceLastChunk = 0;
-    private final int stallThreshold = 20;
     private long tickDurationMs = 500;
     private String summaryReport;
 
@@ -42,12 +41,12 @@ public class SimulationView extends Pane {
         this.totalChunks = totalChunks;
         controller.startSimulation();
 
-        this.tickDurationMs = (long)(500 / speedMultiplier); // default is 500ms
+        this.tickDurationMs = (long)(Constants.DEFAULT_TICK_DUR_MS / speedMultiplier); // default is 500ms
 
         timeline = new Timeline(new KeyFrame(Duration.millis(tickDurationMs), e -> {
             controller.tick();
 
-            PeerNode target = controller.getDownloadTarget();
+            PeerNode target = controller.getDownloadTarget(); // Client peer
             int currentChunkCount = target.getOwnedChunks().size();
 
             // Check for progress
@@ -67,7 +66,7 @@ public class SimulationView extends Pane {
             }
 
             // Download failure
-            if (!downloadComplete && !downloadFailed && ticksSinceLastChunk >= stallThreshold) {
+            if (!downloadComplete && !downloadFailed && ticksSinceLastChunk >= controller.stallThreshold) {
                 downloadFailed = true;
                 buildReportSummary();
                 timeline.stop();

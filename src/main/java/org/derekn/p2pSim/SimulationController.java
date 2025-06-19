@@ -10,7 +10,7 @@ public class SimulationController {
     private int tickCount;
     private int ticksSinceLastProgress = 0;
     private int lastChunkCount = 0;
-    private final int stallThreshold;
+    public final int stallThreshold;
 
     // Constructor
     public SimulationController(int initialPeers, int totalChunks) {
@@ -79,7 +79,6 @@ public class SimulationController {
 
         // Debug logging prints
         System.out.println("Target missing: " + getDownloadTarget().getMissingChunks());
-
         for (NetworkNode conn : getDownloadTarget().getConnections()) {
             if (conn instanceof PeerNode p) {
                 System.out.print("Connected to Peer " + p.getId() + " with chunks: ");

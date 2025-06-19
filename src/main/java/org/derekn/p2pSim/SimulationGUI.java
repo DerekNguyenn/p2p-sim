@@ -23,11 +23,12 @@ import javafx.scene.media.MediaPlayer;
 public class SimulationGUI extends Application {
 
     public void start(Stage primaryStage) {
+        // Create progress bar (placed on the bottom)
         ProgressBar progressBar = new ProgressBar(0);
         progressBar.setPrefWidth(300);
         progressBar.setStyle("-fx-accent: lime;");
 
-        // Input panel
+        // Build input panel (placed on the left-hand side)
         VBox inputPanel = new VBox(10);
         inputPanel.setPadding(new Insets(10));
         inputPanel.setStyle("-fx-background-color: #333333;");
@@ -40,6 +41,7 @@ public class SimulationGUI extends Application {
         fileSizeLabel.setTextFill(Color.WHITE);
         TextField fileSizeValue = new TextField("10");
 
+        // Dropdown
         ComboBox<String> fileSizeUnit = new ComboBox<>();
         fileSizeUnit.getItems().addAll("KB", "MB", "GB");
         fileSizeUnit.setValue("MB");
@@ -49,6 +51,7 @@ public class SimulationGUI extends Application {
         Label speedLabel = new Label("Simulation Speed:");
         speedLabel.setTextFill(Color.WHITE);
 
+        // Create speed slider
         Slider speedSlider = new Slider(0.1, 5.0, 1.0); // 0.1x to 5x speed
         speedSlider.setShowTickLabels(true);
         speedSlider.setShowTickMarks(true);
@@ -59,6 +62,8 @@ public class SimulationGUI extends Application {
         Label chunkSizeLabel = new Label("Chunk Size:");
         chunkSizeLabel.setTextFill(Color.WHITE);
         TextField chunkSizeValue = new TextField("1"); // 1 MB default
+
+        // Dropdown
         ComboBox<String> chunkSizeUnit = new ComboBox<>();
         chunkSizeUnit.getItems().addAll("KB", "MB");
         chunkSizeUnit.setValue("MB");
@@ -70,7 +75,10 @@ public class SimulationGUI extends Application {
 
         Button startButton = new Button("Start Simulation");
 
+        // Create simulation canvas
         SimulationView simulationView = new SimulationView();
+        StackPane simulationPane = new StackPane(simulationView);
+        simulationPane.setStyle("-fx-background-color: #000000;");
 
         Label tickDurationLabel = new Label("1.0x (Realtime)");
         tickDurationLabel.setTextFill(Color.WHITE);
@@ -108,9 +116,7 @@ public class SimulationGUI extends Application {
                 startButton
         );
 
-        StackPane simulationPane = new StackPane(simulationView);
-        simulationPane.setStyle("-fx-background-color: #000000;");
-
+        // Place progress bar to the bottom
         VBox bottomBox = new VBox(progressBar);
         bottomBox.setPadding(new Insets(10));
         bottomBox.setStyle("-fx-background-color: #222222;");
@@ -121,6 +127,7 @@ public class SimulationGUI extends Application {
         layout.setCenter(simulationPane);
         layout.setBottom(bottomBox);
 
+        // Create and show scene
         Scene scene = new Scene(layout, 1000, 600);
         primaryStage.setScene(scene);
         primaryStage.setTitle("P2P File Sharing Simulation");
@@ -160,22 +167,23 @@ public class SimulationGUI extends Application {
         chunkSizeValue.textProperty().addListener((obs, oldVal, newVal) -> updateChunkCount.run());
         chunkSizeUnit.valueProperty().addListener((obs, oldVal, newVal) -> updateChunkCount.run());
 
+        // Handler for start simulation button
         startButton.setOnAction(e -> {
             try {
                 int peers = Integer.parseInt(peersField.getText());
                 double fileVal = Double.parseDouble(fileSizeValue.getText());
                 int chunkValue = Integer.parseInt(chunkSizeValue.getText());
                 long chunkMultiplier = switch (chunkSizeUnit.getValue()) {
-                    case "MB" -> 1_048_576L;
-                    case "KB" -> 1_024L;
+                    case "MB" -> Constants.MB;
+                    case "KB" -> Constants.KB;
                     default -> 1L;
                 };
                 int chunkSize = (int) (chunkValue * chunkMultiplier);
 
                 long multiplier = switch (fileSizeUnit.getValue()) {
-                    case "GB" -> 1_073_741_824L;
-                    case "MB" -> 1_048_576L;
-                    case "KB" -> 1_024L;
+                    case "GB" -> Constants.GB;
+                    case "MB" -> Constants.MB;
+                    case "KB" -> Constants.KB;
                     default -> 1L;
                 };
 
@@ -188,6 +196,7 @@ public class SimulationGUI extends Application {
                         speedMultiplier);
 
                 Timeline progressUpdater = new Timeline(new KeyFrame(Duration.millis(500), evt -> {
+                    // 0 >= progress <= 1
                     progressBar.setProgress(simulationView.getDownloadProgress());
                 }));
                 progressUpdater.setCycleCount(Timeline.INDEFINITE);
@@ -195,13 +204,12 @@ public class SimulationGUI extends Application {
 
                 Timeline prankTimer = new Timeline(new KeyFrame(Duration.seconds(1),
                         evt -> {
-                    showPrankPopup();
-                    playPrankAudio();
                 }));
                 prankTimer.setCycleCount(1);
                 prankTimer.play();
 
             } catch (NumberFormatException ex) {
+                // Input handling for non-numbers
                 Alert alert = new Alert(Alert.AlertType.ERROR, "Please enter valid numbers.");
                 alert.showAndWait();
             }
@@ -209,32 +217,6 @@ public class SimulationGUI extends Application {
 
         // Initial update
         updateChunkCount.run();
-    }
-
-    private void showPrankPopup() {
-        Image image =
-                new Image(Objects.requireNonNull(getClass().getResource("/images" +
-                        "/surprise.jpg")).toString());
-        ImageView imageView = new ImageView(image);
-        imageView.setFitWidth(800);
-        imageView.setPreserveRatio(true);
-
-        StackPane pane = new StackPane(imageView);
-        Scene scene = new Scene(pane, 400, 300);
-
-        Stage popup = new Stage();
-        popup.setScene(scene);
-        popup.setTitle("Uh oh...");
-        popup.setFullScreenExitHint("");
-        popup.setFullScreen(true);
-        popup.show();
-    }
-
-    private void playPrankAudio() {
-        String path = Objects.requireNonNull(getClass().getResource("/audio/alarm.mp3")).toString();
-        Media sound = new Media(path);
-        MediaPlayer player = new MediaPlayer(sound);
-        player.play();
     }
 
     public static void main(String[] args) {
